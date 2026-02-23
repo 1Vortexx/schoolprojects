@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enter Code</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0f0f0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+    }
+
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 40px 48px;
+      width: 360px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.3rem;
+      letter-spacing: 0.15em;
+      color: #e0e0e0;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 0.78rem;
+      color: #555;
+      margin-bottom: 28px;
+      letter-spacing: 0.05em;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      text-align: center;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #666; }
+
+    button {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #ddd; }
+    button:disabled { background: #444; color: #777; cursor: not-allowed; }
+
+    #error {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: #e05555;
+      min-height: 1.1em;
+      letter-spacing: 0.05em;
+    }
+
+    #status {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: #888;
+      min-height: 1.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>ENTER CODE</h1>
+    <p>Enter your teacher code to continue</p>
+
+    <input
+      id="codeInput"
+      type="text"
+      maxlength="10"
+      placeholder="_ _ _ _ _"
+      autocomplete="off"
+      spellcheck="false"
+    />
+
+    <button id="submitBtn" onclick="submitCode()">SUBMIT</button>
+
+    <div id="error"></div>
+    <div id="status"></div>
+  </div>
+
+  <!-- Supabase JS client (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL  = 'https://tcazkkqkgqpyyxepgkdd.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXpra3FrZ3FweXl4ZXBna2RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjE4NTAsImV4cCI6MjA4NzQzNzg1MH0.sZ9biW6Y4fdipOcf7CYzUpNTJz_wwlppFCBfUog2WX8';
+
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    async function submitCode() {
+      const input  = document.getElementById('codeInput');
+      const btn    = document.getElementById('submitBtn');
+      const error  = document.getElementById('error');
+      const status = document.getElementById('status');
+
+      const code = input.value.trim().toUpperCase();
+
+      error.textContent  = '';
+      status.textContent = '';
+
+      if (!code) {
+        error.textContent = 'Please enter a code.';
+        return;
+      }
+
+      btn.disabled       = true;
+      status.textContent = 'Checking code…';
+
+      // Query the teacher_codes table for a matching code
+      const { data, error: dbError } = await db
+        .from('teacher_codes')
+        .select('code, redirect')
+        .eq('code', code)
+        .single();
+
+      btn.disabled       = false;
+      status.textContent = '';
+
+      if (dbError || !data) {
+        error.textContent = 'Invalid code. Please try again.';
+        return;
+      }
+
+      // Redirect to the URL stored in the "redirect" column
+      window.location.href = data.redirect;
+    }
+
+    // Allow pressing Enter to submit
+    document.getElementById('codeInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitCode();
+    });
+  </script>
+
+</body>
+</html>

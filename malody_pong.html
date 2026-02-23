@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pong</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+      user-select: none;
+    }
+    h1 { font-size: 2rem; letter-spacing: 0.4em; margin-bottom: 16px; color: #e0e0e0; }
+    #controls { font-size: 0.75rem; color: #555; margin-bottom: 12px; letter-spacing: 0.05em; }
+    canvas { border: 2px solid #333; border-radius: 4px; display: block; }
+    #message { margin-top: 14px; font-size: 0.9rem; color: #aaa; letter-spacing: 0.1em; min-height: 1.2em; }
+  </style>
+</head>
+<body>
+
+  <h1>PONG</h1>
+  <div id="controls">W / S — Left Paddle &nbsp;|&nbsp; ↑ / ↓ — Right Paddle &nbsp;|&nbsp; SPACE — Start / Pause</div>
+  <canvas id="pong" width="800" height="500"></canvas>
+  <div id="message">Press SPACE to start</div>
+
+  <script>
+    const canvas  = document.getElementById('pong');
+    const ctx     = canvas.getContext('2d');
+    const message = document.getElementById('message');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // =========================================================
+    // PART 1 — ON START
+    // =========================================================
+
+    // 1. Set background color
+    const BACKGROUND_COLOR = '#111';
+
+    // 2 & 3. Create left paddle and right paddle, centered on edges
+    const leftPaddle  = { x: 20,        y: H/2 - 45, w: 12, h: 90, score: 0 };
+    const rightPaddle = { x: W - 32,    y: H/2 - 45, w: 12, h: 90, score: 0 };
+
+    // 4. Create puck sprite (type: FOOD)
+    // 5. Set puck to center of screen
+    const puck = { x: W/2, y: H/2, w: 12, h: 12, vx: 0, vy: 0 };
+
+    // 6. Set puck to bounce off walls (handled in game loop below)
+
+    // 7. Set and display score for each player
+    leftPaddle.score  = 0;
+    rightPaddle.score = 0;
+
+    // Call newPuck to launch the ball (function defined in Part 2)
+
+
+    // =========================================================
+    // PART 2 — FUNCTION: newPuck
+    // =========================================================
+
+    function newPuck() {
+      puck.x = W / 2;
+      puck.y = H / 2;
+
+      // Pick a random direction between 1 and 4
+      const direction = Math.floor(Math.random() * 4) + 1;
+
+      function pickRandom(lo, hi) {
+        return (Math.random() * (hi - lo) + lo) * 0.065;
+      }
+
+      if (direction === 1) {
+        puck.vx = pickRandom(50, 80);
+        puck.vy = pickRandom(50, 80);
+      } else if (direction === 2) {
+        puck.vx = pickRandom(-80, -50);
+        puck.vy = pickRandom(-80, -50);
+      } else if (direction === 3) {
+        puck.vx = pickRandom(50, 80);
+        puck.vy = pickRandom(-80, -50);
+      } else {
+        puck.vx = pickRandom(-80, -50);
+        puck.vy = pickRandom(50, 80);
+      }
+    }
+
+
+    // =========================================================
+    // PART 3 — FOREVER: Keeping Score
+    // =========================================================
+
+    function forever() {
+
+      // If puck x-position < 5 → Player 2 scores
+      if (puck.x < 5) {
+        newPuck();
+        rightPaddle.score += 1;
+        if (rightPaddle.score > 10) {
+          gameOver('Player 2 Wins!');
+        }
+      }
+
+      // If puck x-position > 155 → Player 1 scores
+      if (puck.x > 155) {
+        newPuck();
+        leftPaddle.score += 1;
+        if (leftPaddle.score > 10) {
+          gameOver('Player 1 Wins!');
+        }
+      }
+    }
+
+
+    // =========================================================
+    // PART 4 — Player Controls
+    // =========================================================
+
+    const keys = {};
+    document.addEventListener('keydown', e => {
+      keys[e.key] = true;
+      if ([' ', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
+      if (e.key === ' ') {
+        if (state === 'idle' || state === 'over') {
+          resetGame(); state = 'playing'; message.textContent = '';
+        } else if (state === 'playing') {
+          state = 'paused'; message.textContent = 'PAUSED — Press SPACE to resume';
+        } else if (state === 'paused') {
+          state = 'playing'; message.textContent = '';
+        }
+      }
+    });
+    document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+    function handleControls() {
+      const SPEED = 6;
+
+      // ON UP button pressed — change rightPaddle y by -5
+      if (keys['ArrowUp'])          rightPaddle.y -= SPEED;
+
+      // ON DOWN button pressed — change rightPaddle y by +5
+      if (keys['ArrowDown'])        rightPaddle.y += SPEED;
+
+      // ON A button pressed (Q key) — change leftPaddle y by -5
+      if (keys['q'] || keys['Q'])   leftPaddle.y  -= SPEED;
+
+      // ON B button pressed (E key) — change leftPaddle y by +5
+      if (keys['e'] || keys['E'])   leftPaddle.y  += SPEED;
+
+      leftPaddle.y  = Math.max(0, Math.min(H - leftPaddle.h,  leftPaddle.y));
+      rightPaddle.y = Math.max(0, Math.min(H - rightPaddle.h, rightPaddle.y));
+    }
+
+    // WHEN puck overlaps paddle — set puck vx to (puck vx × -1)
+    function checkPaddleOverlap() {
+      function overlaps(p) {
+        return puck.x < p.x + p.w && puck.x + puck.w > p.x &&
+               puck.y < p.y + p.h && puck.y + puck.h > p.y;
+      }
+      if (overlaps(leftPaddle)) {
+        puck.x  = leftPaddle.x + leftPaddle.w;
+        puck.vx = puck.vx * -1;
+      }
+      if (overlaps(rightPaddle)) {
+        puck.x  = rightPaddle.x - puck.w;
+        puck.vx = puck.vx * -1;
+      }
+    }
+
+
+    // =========================================================
+    // PART 5 (Extension) — Winning Ending
+    // =========================================================
+
+    // Game ends when a player's score exceeds 10.
+    // A game-over message is displayed with the winner's name.
+    function gameOver(winner) {
+      state = 'over';
+      message.textContent = winner + '  Press SPACE to play again.';
+    }
+
+
+    // =========================================================
+    // GAME ENGINE (draw loop — not part of assignment)
+    // =========================================================
+
+    let state = 'idle';
+
+    function resetGame() {
+      leftPaddle.y  = H / 2 - leftPaddle.h  / 2;
+      rightPaddle.y = H / 2 - rightPaddle.h / 2;
+      leftPaddle.score  = 0;
+      rightPaddle.score = 0;
+      newPuck();
+    }
+
+    function draw() {
+      ctx.fillStyle = BACKGROUND_COLOR;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.setLineDash([10, 14]);
+      ctx.strokeStyle = '#2a2a2a';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 72px Courier New';
+      ctx.textAlign = 'center';
+      ctx.fillText(leftPaddle.score,  W/4,     80);
+      ctx.fillText(rightPaddle.score, W*3/4,   80);
+
+      ctx.fillStyle = '#fff';
+      drawPaddle(leftPaddle);
+      drawPaddle(rightPaddle);
+      ctx.beginPath(); ctx.roundRect(puck.x, puck.y, puck.w, puck.h, 2); ctx.fill();
+
+      if (state !== 'playing') {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    function drawPaddle(p) {
+      ctx.beginPath();
+      ctx.roundRect(p.x, p.y, p.w, p.h, 4);
+      ctx.fill();
+    }
+
+    function loop() {
+      if (state === 'playing') {
+        handleControls();
+        puck.x += puck.vx;
+        puck.y += puck.vy;
+
+        // Bounce off top and bottom walls (Part 1, step 6)
+        if (puck.y <= 0)           { puck.y = 0;           puck.vy =  Math.abs(puck.vy); }
+        if (puck.y + puck.h >= H)  { puck.y = H - puck.h;  puck.vy = -Math.abs(puck.vy); }
+
+        checkPaddleOverlap();
+
+        // Map canvas x to MakeCode 160px scale, then run scoring
+        const scaledX = (puck.x / W) * 160;
+        if (scaledX < 5) {
+          newPuck(); rightPaddle.score += 1;
+          if (rightPaddle.score > 10) gameOver('Player 2 Wins!');
+        }
+        if (scaledX > 155) {
+          newPuck(); leftPaddle.score += 1;
+          if (leftPaddle.score > 10) gameOver('Player 1 Wins!');
+        }
+      }
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    newPuck();
+    loop();
+  </script>
+</body>
+</html>

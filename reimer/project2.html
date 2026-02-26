@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tha Protfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background: #000;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    .eyebrow {
+      font-size: 0.68rem;
+      color: #555;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #1f1f1f;
+    }
+
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 48px;
+    }
+
+    .section-title span {
+      background: #fff;
+      color: #000;
+      padding: 0 10px;
+    }
+
+    hr.divider {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+    }
+
+
+    .profile-photo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #333;
+      margin-bottom: 20px;
+    }
+
+    .profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(100%);
+    }
+
+    .subject {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #1a1a1a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .subject::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    .subject-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .subject-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #2a2a2a;
+      color: #555;
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      margin-bottom: 28px;
+    }
+
+    .subject h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 3.8rem;
+      font-weight: 900;
+      line-height: 1.0;
+      margin-bottom: 8px;
+    }
+
+    .subject h1 .last {
+      background: #fff;
+      color: #000;
+      padding: 0 12px;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    .subject-role {
+      font-size: 0.85rem;
+      color: #555;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 20px 0 32px;
+    }
+
+    .subject-role span {
+      color: #888;
+    }
+
+    .subject-desc {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.9;
+      max-width: 420px;
+      margin-bottom: 40px;
+    }
+
+    .subject-btns {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 13px 28px;
+      border: 1px solid #fff;
+      transition: background 0.2s, color 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: #555;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 13px 28px;
+      border: 1px solid #2a2a2a;
+      transition: color 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-outline:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+
+    .subject-right {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border: 1px solid #1a1a1a;
+    }
+
+    .subject-stat-row {
+      display: flex;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .subject-stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .subject-stat {
+      flex: 1;
+      padding: 24px;
+      border-right: 1px solid #1a1a1a;
+      text-align: center;
+    }
+
+    .subject-stat:last-child {
+      border-right: none;
+    }
+
+    .subject-stat-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #fff;
+      display: block;
+    }
+
+    .subject-stat-lbl {
+      font-size: 0.65rem;
+      color: #444;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .subject-badge-row {
+      padding: 20px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .subject-badge {
+      border: 1px solid #2a2a2a;
+      color: #555;
+      font-size: 0.68rem;
+      padding: 4px 12px;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #333;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .scroll-hint i {
+      animation: bounce 1.6s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+
+    /* ── ABOUT ───────────────────────────────────── */
+    #about {
+      padding: 96px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 0.88rem;
+      color: #666;
+      line-height: 1.9;
+      margin-bottom: 20px;
+    }
+
+    .about-text p span {
+      color: #fff;
+    }
+
+    .about-facts {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border: 1px solid #1a1a1a;
+    }
+
+    .about-fact {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      transition: background 0.15s;
+    }
+
+    .about-fact:last-child {
+      border-bottom: none;
+    }
+
+    .about-fact:hover {
+      background: #080808;
+    }
+
+    .about-fact i {
+      color: #fff;
+      width: 16px;
+      text-align: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .about-fact-label {
+      font-size: 0.7rem;
+      color: #444;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      width: 90px;
+      flex-shrink: 0;
+    }
+
+    .about-fact-value {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+
+    /* ── SKILLS ──────────────────────────────────── */
+    #skills {
+      padding: 96px 0;
+      border-bottom: 1px solid #1a1a1a;
+      background: #050505;
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: #1a1a1a;
+      border: 1px solid #1a1a1a;
+    }
+
+    .skill-group {
+      background: #050505;
+      padding: 32px;
+    }
+
+    .skill-group-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .skill-group-title i {
+      font-size: 1rem;
+    }
+
+    .skill-item {
+      margin-bottom: 16px;
+    }
+
+    .skill-label-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .skill-name {
+      font-size: 0.78rem;
+      color: #999;
+    }
+
+    .skill-pct {
+      font-size: 0.7rem;
+      color: #444;
+    }
+
+    .skill-track {
+      height: 3px;
+      background: #111;
+      width: 100%;
+    }
+
+    .skill-fill {
+      height: 100%;
+      background: #fff;
+      transition: width 0.6s ease;
+    }
+
+
+    /* ── PROJECTS ────────────────────────────────── */
+    #projects {
+      padding: 96px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: #1a1a1a;
+      border: 1px solid #1a1a1a;
+    }
+
+    .project-card {
+      background: #000;
+      padding: 36px;
+      transition: background 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-card:hover {
+      background: #080808;
+    }
+
+    .project-card.featured {
+      grid-column: span 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      padding: 48px;
+    }
+
+    .project-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      color: #333;
+      letter-spacing: 3px;
+      margin-bottom: 16px;
+    }
+
+    .project-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .project-desc {
+      font-size: 0.82rem;
+      color: #555;
+      line-height: 1.8;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .project-tag {
+      border: 1px solid #2a2a2a;
+      color: #555;
+      font-size: 0.65rem;
+      padding: 3px 10px;
+      letter-spacing: 1px;
+    }
+
+    .project-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #fff;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 2px;
+      width: fit-content;
+      transition: border-color 0.2s;
+    }
+
+    .project-link:hover {
+      border-color: #fff;
+    }
+
+    .project-visual {
+      border: 1px solid #1a1a1a;
+      background: #070707;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      color: #222;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 30%, #000 100%);
+      pointer-events: none;
+    }
+
+    .project-visual.dark { background: #030303; }
+
+    .project-visual i {
+      color: #fff;
+      opacity: 0.08;
+      font-size: 5rem;
+    }
+
+
+    /* ── CONTACT ─────────────────────────────────── */
+    #contact {
+      padding: 96px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    .contact-blurb {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.9;
+      margin-bottom: 36px;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border: 1px solid #1a1a1a;
+    }
+
+    .contact-link-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+
+    .contact-link-item:last-child { border-bottom: none; }
+
+    .contact-link-item:hover { background: #080808; }
+
+    .contact-link-item i {
+      color: #fff;
+      width: 18px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .contact-link-label {
+      font-size: 0.7rem;
+      color: #444;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      width: 80px;
+      flex-shrink: 0;
+    }
+
+    .contact-link-val {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+
+    .contact-link-item .fa-arrow-right {
+      margin-left: auto;
+      color: #333;
+      font-size: 0.75rem;
+    }
+
+    .contact-link-item:hover .fa-arrow-right { color: #fff; }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-field label {
+      font-size: 0.65rem;
+      color: #444;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .form-field input,
+    .form-field textarea {
+      background: #070707;
+      border: 1px solid #1a1a1a;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+
+    .form-field input:focus,
+    .form-field textarea:focus {
+      border-color: #444;
+    }
+
+    .form-field input::placeholder,
+    .form-field textarea::placeholder {
+      color: #2a2a2a;
+    }
+
+    .form-submit {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 13px 28px;
+      border: 1px solid #fff;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      width: fit-content;
+    }
+
+    .form-submit:hover {
+      background: #000;
+      color: #fff;
+    }
+
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .footer-logo span {
+      background: #fff;
+      color: #000;
+      padding: 0 6px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-links a {
+      font-size: 0.75rem;
+      color: #333;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-links a:hover { color: #fff; }
+
+    .footer-copy {
+      font-size: 0.72rem;
+      color: #2a2a2a;
+      letter-spacing: 1px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ══ HERO ══════════════════════════════════════════ -->
+  <section class="subject" id="home">
+    <div class="container">
+      <div class="subject-inner">
+
+        <div>
+          <div class="profile-photo">
+            <img src="https://codehs.com/uploads/8422e0428f08b4c370b2c4cc56d4a123" alt="Demitri Burns" />
+          </div>
+          <div class="subject-tag">
+            <i class="fas fa-terminal"></i>
+            Portfolio &mdash; 2026
+          </div>
+          <h1>
+            DEMITRI<br />
+            <span class="last">BURNS</span>
+          </h1>
+          <p class="subject-role">
+            <i class="fas fa-circle" style="font-size:0.4rem; margin-right:4px;"></i>
+            Student &nbsp;&bull;&nbsp;
+            <span>Developer</span> &nbsp;&bull;&nbsp;
+            Designer
+          </p>
+          <p class="subject-desc">
+            I build things for fun. I like web development and soecifically video editing
+          </p>
+          <div class="subject-btns">
+            <a href="#projects" class="btn-primary">
+              <i class="fas fa-folder-open"></i>
+              View Projects
+            </a>
+            <a href="#contact" class="btn-outline">
+              <i class="fas fa-paper-plane"></i>
+              Contact Me
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <div class="subject-right">
+            <div class="subject-stat-row">
+              <div class="subject-stat">
+                <span class="subject-stat-num">10+</span>
+                <span class="subject-stat-lbl">Projects</span>
+              </div>
+              <div class="subject-stat">
+                <span class="subject-stat-num">5+</span>
+                <span class="subject-stat-lbl">Years Coding</span>
+              </div>
+            </div>
+            <div class="subject-stat-row">
+              <div class="subject-stat">
+                <span class="subject-stat-num">8</span>
+                <span class="subject-stat-lbl">Languages</span>
+              </div>
+              <div class="subject-stat">
+                <span class="subject-stat-num">4KB</span>
+                <span class="subject-stat-lbl">Of GAF</span>
+              </div>
+            </div>
+            <div class="subject-badge-row">
+              <span class="subject-badge"><i class="fab fa-html5"></i> HTML</span>
+              <span class="subject-badge"><i class="fab fa-css3-alt"></i> CSS</span>
+              <span class="subject-badge"><i class="fab fa-js"></i> JavaScript</span>
+              <span class="subject-badge"><i class="fab fa-python"></i> Python</span>
+              <span class="subject-badge"><i class="fas fa-database"></i> ProstreSQL</span>
+              <span class="subject-badge"><i class="fa-brands fa-docker"></i> Docker</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </section>
+
+
+  <!-- ══ ABOUT ═════════════════════════════════════════ -->
+  <section id="about">
+    <div class="container">
+      <div class="eyebrow"><i class="fas fa-user"></i> About Me</div>
+      <div class="about-grid">
+
+        <div class="about-text">
+          <h2 class="section-title">Who I <span>Am</span></h2>
+          <p>
+            Hi, I&rsquo;m <span>Demitri</span>, a student and self-taught developer
+            with a passion for building things on the web. I started with the basics of
+            HTML and CSS and have been pushing further ever since.
+          </p>
+          <p>
+            I enjoy working on projects from full web operating system interfaces
+            to interactive games. I care about my experiences actually feeling <span>polished</span>.
+          </p>
+          <br />
+          <a href="#projects" class="btn-primary" style="margin-top: 8px;">
+            <i class="fas fa-arrow-right"></i>
+            See My Work
+          </a>
+        </div>
+
+        <div>
+          <div class="about-facts">
+            <div class="about-fact">
+              <i class="fas fa-user-graduate"></i>
+              <span class="about-fact-label">Status</span>
+              <span class="about-fact-value">Student</span>
+            </div>
+            <div class="about-fact">
+              <i class="fas fa-map-marker-alt"></i>
+              <span class="about-fact-label">Location</span>
+              <span class="about-fact-value">Casper, US</span>
+            </div>
+            <div class="about-fact">
+              <i class="fas fa-code"></i>
+              <span class="about-fact-label">Focus</span>
+              <span class="about-fact-value">Web Development &amp; Design</span>
+            </div>
+            <div class="about-fact">
+              <i class="fas fa-fire"></i>
+              <span class="about-fact-label">Currently</span>
+              <span class="about-fact-value">Cooking up a CSS Cookie</span>
+            </div>
+            <div class="about-fact">
+              <i class="fas fa-gamepad"></i>
+              <span class="about-fact-label">Interests</span>
+              <span class="about-fact-value">Games, UI Design, Web Development</span>
+            </div>
+            <div class="about-fact">
+              <i class="fas fa-heart"></i>
+              <span class="about-fact-label">Goal</span>
+              <span class="about-fact-value">Ship things that the homies love</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ SKILLS ════════════════════════════════════════ -->
+  <section id="skills">
+    <div class="container">
+      <div class="eyebrow"><i class="fas fa-wrench"></i> Skills</div>
+      <h2 class="section-title">What I <span>Know</span></h2>
+
+      <div class="skills-grid">
+
+        <div class="skill-group">
+          <div class="skill-group-title">
+            <i class="fas fa-globe"></i>
+            Frontend
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">HTML5</span>
+              <span class="skill-pct">95%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:95%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">CSS3</span>
+              <span class="skill-pct">90%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:90%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">JavaScript</span>
+              <span class="skill-pct">80%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:80%;"></div></div>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-title">
+            <i class="fas fa-terminal"></i>
+            Programming
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">Python</span>
+              <span class="skill-pct">75%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:75%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">SQL</span>
+              <span class="skill-pct">60%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:60%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">Docker</span>
+              <span class="skill-pct">65%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:65%;"></div></div>
+          </div>
+        </div>
+
+        <div class="skill-group">
+          <div class="skill-group-title">
+            <i class="fas fa-paint-brush"></i>
+            Design &amp; Tools
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">UI / UX Design</span>
+              <span class="skill-pct">80%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:80%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">CSS Animations</span>
+              <span class="skill-pct">85%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:85%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">Git / Version Control</span>
+              <span class="skill-pct">70%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:70%;"></div></div>
+          </div>
+          <div class="skill-item">
+            <div class="skill-label-row">
+              <span class="skill-name">Problem Solving</span>
+              <span class="skill-pct">90%</span>
+            </div>
+            <div class="skill-track"><div class="skill-fill" style="width:90%;"></div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ PROJECTS ══════════════════════════════════════ -->
+  <section id="projects">
+    <div class="container">
+      <div class="eyebrow"><i class="fas fa-folder-open"></i> Work</div>
+      <h2 class="section-title">My <span>Projects</span></h2>
+
+      <div class="projects-grid">
+
+        <div class="project-card featured">
+          <div>
+            <div class="project-num">01 &mdash; FEATURED</div>
+            <div class="project-title">X-ORBIT Desktop</div>
+            <p class="project-desc">
+              X-ORBIT Desktop is a fully web-based proxy OS built entierly off of HTMl5, CSS3, JS, Docker, Nix, & ProstreSQL.
+            </p>
+            <div class="project-tags">
+              <span class="project-tag">HTML</span>
+              <span class="project-tag">CSS</span>
+              <span class="project-tag">JavaScript</span>
+              <span class="project-tag">SQL</span>
+              <span class="project-tag">Docker</span>
+              <span class="project-tag">Nix</span>
+            </div>
+            <a href="https://xorbit.org" class="project-link" target="_blank">
+              <i class="fas fa-arrow-right"></i>
+              View Project
+            </a>
+          </div>
+          <div class="project-visual">
+            <img src="https://codehs.com/uploads/4172b2f0b44709a295bd992b1757f9f4" alt="X-ORBIT Desktop" style="width:100%;height:100%;object-fit:cover;display:block;" />
+          </div>
+        </div>
+
+        <div class="project-card">
+          <div class="project-num">02</div>
+          <div class="project-title">Casper Youth Hub Survey System</div>
+          <p class="project-desc">
+            A survey and data collection platform built for the Casper Youth Hub.
+            Allows youth to submit responses and staff to review results, while being 
+            designed to be simple, accessible, and reliable for community use.
+          </p>
+          <div class="project-tags">
+            <span class="project-tag">HTML</span>
+            <span class="project-tag">CSS</span>
+            <span class="project-tag">JavaScript</span>
+            <span class="project-tag">SQL</span>
+            <span class="project-tag">Community</span>
+          </div>
+          <a href="https://beta.casperyouthhub.org" class="project-link" target="_blank">
+            <i class="fas fa-arrow-right"></i>
+            View Project
+          </a>
+        </div>
+
+        <div class="project-card">
+          <div class="project-num">03</div>
+          <div class="project-title">itsvortexx.space</div>
+          <p class="project-desc">
+            My personal website. A clean, fast, self-hosted site built to showcase
+            who I am online and what I do.
+          </p>
+          <div class="project-tags">
+            <span class="project-tag">HTML</span>
+            <span class="project-tag">CSS</span>
+            <span class="project-tag">JavaScript</span>
+            <span class="project-tag">last.fm</span>
+          </div>
+          <a href="https://itsvortexx.space" class="project-link" target="_blank">
+            <i class="fas fa-arrow-right"></i>
+            View Project
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ CONTACT ═══════════════════════════════════════ -->
+  <section id="contact">
+    <div class="container">
+      <div class="eyebrow"><i class="fas fa-paper-plane"></i> Get In Touch</div>
+      <div class="contact-grid">
+
+        <div>
+          <h2 class="section-title">Let&rsquo;s <span>Connect</span></h2>
+          <p class="contact-blurb">
+            Have a project idea, a question, or just want to say hello?
+            Fill out the form or reach me through any of the channels below.
+            I&rsquo;m always open to interesting conversations.
+          </p>
+
+          <div class="contact-links">
+            <div class="contact-link-item">
+              <i class="fas fa-envelope"></i>
+              <span class="contact-link-label">Email</span>
+              <span class="contact-link-val">demitriburns@xorbit.org</span>
+              <i class="fas fa-arrow-right"></i>
+            </div>
+            <div class="contact-link-item">
+              <i class="fab fa-github"></i>
+              <span class="contact-link-label">GitHub</span>
+              <span class="contact-link-val">github.io/1vortexx</span>
+              <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ FOOTER ════════════════════════════════════════ -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-logo">D<span>B</span></span>
+        <div class="footer-links">
+          <a href="#home"><i class="fas fa-house"></i> Home</a>
+          <a href="#about"><i class="fas fa-user"></i> About</a>
+          <a href="#projects"><i class="fas fa-folder"></i> Projects</a>
+          <a href="#contact"><i class="fas fa-envelope"></i> Contact</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 Demitri Burns</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

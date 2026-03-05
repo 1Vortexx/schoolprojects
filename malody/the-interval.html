@@ -9,6 +9,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
+  font-size:20px;
   --bg:#000;--surf:#060606;--s2:#040404;
   --bdr:#1a1a1a;--bhi:#282828;
   --txt:#fff;--dim:#ccc;--mut:#888;
@@ -21,7 +22,7 @@
 body{
   font-family:'Share Tech Mono',monospace;
   background:var(--bg);color:var(--txt);
-  font-size:13px;min-height:100vh;overflow-x:hidden;
+  font-size:16px;min-height:100vh;overflow-x:hidden;
 }
 body::before{
   content:'';position:fixed;inset:0;
@@ -136,6 +137,27 @@ header{
 .hptxt{font-size:.46rem;color:var(--gst);letter-spacing:1px;}
 .cuff-badge{font-size:.42rem;letter-spacing:1px;color:var(--wrn);border:1px solid rgba(251,191,36,.25);padding:1px 5px;text-transform:uppercase;display:none;}
 .cuff-badge.on{display:block;}
+/* ══ CUFF BANNER (non-blocking top bar, same slide pattern as turnBanner) */
+#cuffOv{
+  position:fixed;top:0;left:50%;
+  transform:translateX(-50%) translateY(-130%);
+  z-index:401;
+  background:rgba(14,10,2,.97);
+  color:var(--wrn);
+  border-bottom:1px solid rgba(251,191,36,.45);
+  box-shadow:0 6px 36px rgba(251,191,36,.18),inset 0 -1px 0 rgba(251,191,36,.1);
+  padding:7px 22px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:.52rem;letter-spacing:3px;text-transform:uppercase;
+  display:flex;align-items:center;gap:10px;
+  border-radius:0 0 6px 6px;
+  pointer-events:none;
+  opacity:0;
+  transition:transform .4s cubic-bezier(.16,1,.3,1),opacity .3s ease;
+  white-space:nowrap;
+}
+#cuffOv.show{transform:translateX(-50%) translateY(0);opacity:1;}
+#cuffOv i{font-size:.9rem;}
 
 /* ══ DEALER STRIP */
 #dealerStrip{
@@ -462,7 +484,7 @@ header{
   font-family:'Orbitron',monospace;font-size:clamp(20px,5vw,42px);
   font-weight:900;letter-spacing:4px;text-transform:uppercase;line-height:1;color:#fff;
 }
-.int-ver{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.28);font-family:'Share Tech Mono',monospace;}
+.int-ver{font-size:14px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.28);font-family:'Share Tech Mono',monospace;}
 
 /* ══ MAIN MENU (Steam-style) ════════════════════════════════════════ */
 #mainMenu{
@@ -550,9 +572,9 @@ header{
 .mm-btn:hover .mm-arr{transform:rotate(45deg) translate(2px,-2px);opacity:.8;}
 /* difficulty sub-panel */
 .mm-diff-wrap{overflow:hidden;max-height:0;transition:max-height .3s ease;}
-.mm-diff-wrap.open{max-height:180px;}
+.mm-diff-wrap.open{max-height:280px;}
 .mm-diff-grid{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;
+  display:grid;grid-template-columns:1fr 1fr;gap:4px;
   padding:6px 0 6px 32px;
 }
 .mm-dopt{
@@ -568,6 +590,9 @@ header{
 .mm-dopt .mm-dd{font-size:.37rem;color:rgba(255,255,255,.18);letter-spacing:.3px;}
 .mm-dopt:hover{color:rgba(255,255,255,.72);border-color:rgba(255,255,255,.22);}
 .mm-dopt.sel{color:#fff;border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.06);}
+.mm-dopt.overkill-opt{color:rgba(220,50,50,.5);border-color:rgba(180,30,30,.2);}
+.mm-dopt.overkill-opt:hover{color:rgba(255,80,80,.9);border-color:rgba(200,50,50,.5);}
+.mm-dopt.overkill-opt.sel{color:#ff4444;border-color:rgba(255,60,60,.7);background:rgba(180,20,20,.15);}
 .mm-foot{
   font-size:.4rem;letter-spacing:2px;color:rgba(255,255,255,.12);
   text-transform:uppercase;padding-top:14px;
@@ -762,20 +787,102 @@ body.no-vignette #tableBox::before{opacity:0;}
   color:rgba(255,255,255,.85);margin-bottom:8px;line-height:1.4;
 }
 .int-fs-sub{
-  font-family:'Share Tech Mono',monospace;font-size:12px;
+  font-family:'Share Tech Mono',monospace;font-size:15px;
   color:rgba(255,255,255,.3);letter-spacing:.5px;margin-bottom:34px;
 }
 .int-fs-actions{display:flex;gap:10px;justify-content:center;}
 .int-fs-btn{
   padding:12px 26px;border:1px solid rgba(255,255,255,.25);
   background:transparent;color:rgba(255,255,255,.55);
-  font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:700;
+  font-family:'Share Tech Mono',monospace;font-size:14px;font-weight:700;
   letter-spacing:1.5px;text-transform:uppercase;
   cursor:pointer;transition:all .2s ease;
 }
 .int-fs-btn.primary{background:#fff;color:#000;border-color:#fff;}
 .int-fs-btn.primary:hover{background:#ddd;}
 .int-fs-btn.secondary:hover{color:#fff;border-color:rgba(255,255,255,.5);}
+
+/* ═══════ TUTORIAL ═══════ */
+#tutPanel{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:10000;
+  background:rgba(3,3,3,.98);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 0 0 1px rgba(255,255,255,.04),0 20px 70px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06);
+  width:min(480px,94vw);
+  padding:22px 24px 18px;
+  font-family:'Share Tech Mono',monospace;
+  display:none;
+  flex-direction:column;
+  gap:14px;
+  pointer-events:all;
+}
+#tutPanel.vis{display:flex;}
+#tutHead{
+  font-family:'Orbitron',monospace;font-weight:700;
+  font-size:1rem;letter-spacing:3px;color:#fff;
+  text-transform:uppercase;padding-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+#tutBody{
+  font-size:.85rem;letter-spacing:.3px;color:rgba(255,255,255,.72);
+  line-height:1.75;
+}
+#tutBody i{color:rgba(255,255,255,.9);}
+#tutBody b{color:#fff;font-weight:normal;}
+#tutFoot{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:12px;border-top:1px solid rgba(255,255,255,.06);gap:8px;
+}
+#tutStep{font-size:.65rem;letter-spacing:2px;color:rgba(255,255,255,.22);text-transform:uppercase;}
+#tutBtns{display:flex;gap:8px;}
+.tut-btn{
+  background:transparent;border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.7);font-family:'Share Tech Mono',monospace;
+  font-size:.78rem;letter-spacing:2px;text-transform:uppercase;
+  padding:8px 18px;cursor:pointer;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.tut-btn:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.45);color:#fff;}
+#tutSkip{
+  border-color:rgba(255,255,255,.08);color:rgba(255,255,255,.28);
+  font-size:.68rem;padding:7px 13px;
+}
+#tutSkip:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.6);}
+.tut-lit{
+  outline:1px solid rgba(255,255,255,.6)!important;
+  outline-offset:4px;
+  animation:tutPulse 1.4s ease-in-out infinite;
+}
+@keyframes tutPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.12),0 0 16px rgba(255,255,255,.06);}
+  50%     {box-shadow:0 0 0 6px rgba(255,255,255,.0),0 0 32px rgba(255,255,255,.18);}
+}
+/* ═══════ TUTORIAL CONFIRM ═══════ */
+#tutConfirmOv{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:9500;display:none;align-items:center;justify-content:center;
+}
+#tutConfirmOv.active{display:flex;}
+#tutConfirmBox{
+  background:rgba(3,3,3,.98);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 0 0 1px rgba(255,255,255,.04),0 20px 70px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.06);
+  padding:26px 28px 20px;width:min(440px,92vw);
+  font-family:'Share Tech Mono',monospace;
+  display:flex;flex-direction:column;gap:16px;
+}
+#tutConfirmTitle{
+  font-family:'Orbitron',monospace;font-weight:700;
+  font-size:.95rem;letter-spacing:3px;color:#fff;text-transform:uppercase;
+  padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);
+}
+#tutConfirmBody{
+  font-size:.82rem;letter-spacing:.3px;color:rgba(255,255,255,.5);line-height:1.75;
+}
+#tutConfirmBtns{display:flex;gap:10px;justify-content:flex-end;}
+#tutConfirmNo{border-color:rgba(255,255,255,.08)!important;color:rgba(255,255,255,.28)!important;}
+#tutConfirmNo:hover{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.2)!important;color:rgba(255,255,255,.55)!important;}
 </style>
 </head>
 <body>
@@ -863,6 +970,7 @@ body.no-vignette #tableBox::before{opacity:0;}
             <div class="sname">YOU</div>
             <div class="hearts" id="hPly"></div>
             <div class="hptxt" id="htPly">HP --</div>
+            <div class="cuff-badge" id="pCuffBadge"><i class="fa-solid fa-handcuffs"></i> CUFFED</div>
           </div>
         </div>
 
@@ -939,7 +1047,7 @@ body.no-vignette #tableBox::before{opacity:0;}
         <div class="pause-stat-val" id="pauseDiff">--</div>
       </div>
     </div>
-    <div class="pause-actions">
+    <div class="pause-actions" id="pauseActions">
       <button class="pause-btn pause-resume" onclick="resumeGame()">
         <i class="fa-solid fa-play"></i> RESUME
       </button>
@@ -1069,7 +1177,7 @@ body.no-vignette #tableBox::before{opacity:0;}
     <img src="https://codehs.com/uploads/39917a9164bc93044cfd490282851ec2"
          alt="X-ORBIT Logo"
          style="width:280px;height:auto;object-fit:contain;margin-bottom:18px;" />
-    <div style="font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.5px;font-family:'Share Tech Mono',monospace;">
+    <div style="font-size:13px;color:rgba(255,255,255,.2);letter-spacing:.5px;font-family:'Share Tech Mono',monospace;">
       For more info visit <a href="https://studios.xorbit.org" target="_blank"
         style="color:rgba(255,255,255,.4);text-decoration:underline;">studios.xorbit.org</a>
     </div>
@@ -1124,7 +1232,7 @@ body.no-vignette #tableBox::before{opacity:0;}
     <nav class="mm-nav">
 
       <!-- New Game -->
-      <button class="mm-btn mm-prim" onclick="mmPlay()">
+      <button class="mm-btn mm-prim" id="mmPlayBtn" onclick="mmPlay()">
         <i class="fa-solid fa-play"></i>
         <span class="mm-lbl">NEW GAME</span>
         <div class="mm-arr"></div>
@@ -1160,11 +1268,16 @@ body.no-vignette #tableBox::before{opacity:0;}
             <div class="mm-dn">HARD</div>
             <div class="mm-dd">4 HP · more live</div>
           </button>
+          <button class="mm-dopt overkill-opt" id="mmDiff_overkill" onclick="mmSelDiff('overkill')">
+            <i class="fa-solid fa-skull"></i>
+            <div class="mm-dn">OVERKILL</div>
+            <div class="mm-dd">6 HP · AI is god</div>
+          </button>
         </div>
       </div>
 
-      <!-- How to Play (scrolls right panel) -->
-      <button class="mm-btn" onclick="mmHighlightRules()">
+      <!-- How to Play / Replay Tutorial -->
+      <button class="mm-btn" id="mmHowToPlayBtn" onclick="mmHowToPlay()">
         <i class="fa-solid fa-book-open"></i>
         <span class="mm-lbl">HOW TO PLAY</span>
         <div class="mm-arr"></div>
@@ -1309,6 +1422,12 @@ body.no-vignette #tableBox::before{opacity:0;}
 </div>
 
 <!-- ══ CHAMBER MODAL -->
+<!-- ══ CUFF BANNER (player restrained — non-blocking top bar) -->
+<div id="cuffOv">
+  <i class="fa-solid fa-handcuffs"></i>
+  <span>RESTRAINED — TURNS REMAINING: <span id="cuffTurnsNum">2</span></span>
+</div>
+
 <div id="chamberOv">
   <div id="chamberModal">
     <div class="cm-hd">
@@ -1378,9 +1497,10 @@ function goMenu(){ hide('resultOv'); stopGameMusic(); showMainMenu(); startMenuM
 function initRound(){
   rnd++; busy=false;
   const cfg={
-    easy:{hp:6,lMin:1,lMax:3,bMin:3,bMax:5},
-    med: {hp:5,lMin:2,lMax:4,bMin:2,bMax:4},
-    hard:{hp:4,lMin:3,lMax:5,bMin:1,bMax:3},
+    easy:    {hp:6,lMin:1,lMax:3,bMin:3,bMax:5},
+    med:     {hp:5,lMin:2,lMax:4,bMin:2,bMax:4},
+    hard:    {hp:4,lMin:3,lMax:5,bMin:1,bMax:3},
+    overkill:{hp:6,lMin:3,lMax:5,bMin:1,bMax:3},
   }[diff];
   const maxHp=Math.min(cfg.hp+Math.floor(rnd/4),8);
   const lN=rnd_(cfg.lMin,Math.min(cfg.lMax+Math.floor(rnd/3),5));
@@ -1395,8 +1515,12 @@ function initRound(){
     pItems:randItems(3),
     oItems:randItems(3),
     turn:'player',
-    dbl:false,cuffed:false,rev:-1,
+    dbl:false,oCuffed:0,pCuffed:0,rev:-1,
   };
+  // Reset cuff UI on new round
+  hide('cuffOv');
+  g('pCuffBadge').classList.remove('on');
+  g('cuffBadge').classList.remove('on');
 
   g('rnLbl').textContent=pad(rnd);
   setActions(false);
@@ -1406,6 +1530,7 @@ function initRound(){
     setTurnBar('YOUR TURN',true);
     showBanner('player');
     setActions(true); busy=false;
+    tutCheckpoint('chamberDone');
   });
 }
 
@@ -1426,6 +1551,7 @@ function randItems(n){
 // ════════════════════════════════
 function shoot(tgt){
   if(busy||G.turn!=='player'||_paused)return;
+  tutCheckpoint('shoot'); // advance tutorial when player fires
   busy=true; setActions(false);
   const sh=G.shells[G.idx];
   const dm=G.dbl?2:1; G.dbl=false; updDbl();
@@ -1434,11 +1560,16 @@ function shoot(tgt){
     G.rev=-1;
     if(sh==='live'){
       playShot('live');
-      if(tgt==='opp'){ G.oHp=Math.max(0,G.oHp-dm); log('live','fa-solid fa-fire-flame-curved',`YOU → OPPONENT: LIVE hit, −${dm}HP`); flash('sOpp',false); }
-      else           { G.pHp=Math.max(0,G.pHp-dm);  log('live','fa-solid fa-fire-flame-curved',`YOU → YOU: LIVE hit, −${dm}HP`);      flash('sPly',false); playerWasShot(); }
-      G.idx++; updateUI();
-      if(chkReload())return; if(chkOver())return;
-      toOpp();
+      if(tgt==='opp'){
+        G.oHp=Math.max(0,G.oHp-dm); log('live','fa-solid fa-fire-flame-curved',`YOU → OPPONENT: LIVE hit, −${dm}HP`); flash('sOpp',false);
+        G.idx++; updateUI(); if(chkReload())return; if(chkOver())return;
+        toOpp();
+      } else {
+        // Self live-shot: take damage but keep your turn
+        G.pHp=Math.max(0,G.pHp-dm); log('live','fa-solid fa-fire-flame-curved',`YOU → YOU: LIVE hit, −${dm}HP`); flash('sPly',false); playerWasShot();
+        G.idx++; updateUI(); if(chkReload())return; if(chkOver())return;
+        setTurnBar('YOUR TURN',true); showBanner('player'); setActions(true); busy=false;
+      }
     } else {
       playShot('blnk');
       if(tgt==='opp') log('blnk','fa-regular fa-circle','YOU → OPPONENT: BLANK — no damage');
@@ -1459,67 +1590,213 @@ function shoot(tgt){
 // ════════════════════════════════
 // OPPONENT TURN
 // ════════════════════════════════
+function aiDelay(){ return Math.floor(Math.random()*7000)+3000; }
+
 function toOpp(){
   G.turn='opp';
-  if(G.cuffed){
-    G.cuffed=false;
-    g('cuffBadge').classList.remove('on');
-    log('item','fa-solid fa-handcuffs','HANDCUFFS — opponent turn skipped');
+  if(G.oCuffed>0){
+    G.oCuffed--;
+    const rem=G.oCuffed;
+    if(rem===0){
+      g('cuffBadge').classList.remove('on');
+      log('item','fa-solid fa-handcuffs','HANDCUFFS — opponent final turn skipped, cuffs released');
+    } else {
+      log('item','fa-solid fa-handcuffs',`HANDCUFFS — opponent turn skipped (${rem} left)`);
+    }
     showBanner('player');
     setTimeout(()=>{ G.turn='player'; setTurnBar('YOUR TURN',true); setActions(true); busy=false; },900);
   } else {
     setTurnBar('OPPONENT TURN',false);
     showBanner('opp');
     showThink(true);
-    setTimeout(oppTurn,1200);
+    setTimeout(oppTurn,aiDelay());
   }
+}
+
+function toPlayer(){
+  if(G.pCuffed>0){
+    G.pCuffed--;
+    const rem=G.pCuffed;
+    if(rem===0){
+      hide('cuffOv');
+      g('pCuffBadge').classList.remove('on');
+      log('item','fa-solid fa-handcuffs','HANDCUFFS — your final turn skipped, cuffs released');
+      toast('CUFFS RELEASED');
+    } else {
+      g('cuffTurnsNum').textContent=rem;
+      log('item','fa-solid fa-handcuffs',`HANDCUFFS — your turn skipped (${rem} left)`);
+    }
+    // Skip player turn → opponent acts again
+    G.turn='opp';
+    setTurnBar('OPPONENT TURN',false);
+    showBanner('opp');
+    showThink(true);
+    setTimeout(oppTurn,aiDelay());
+  } else {
+    G.turn='player';
+    setTurnBar('YOUR TURN',true);
+    showBanner('player');
+    setActions(true);
+    busy=false;
+  }
+}
+
+function showCuffModal(n){
+  g('cuffTurnsNum').textContent=n;
+  g('pCuffBadge').classList.add('on');
+  show('cuffOv');
+}
+
+// ════════════════════════════════
+// AI INTELLIGENCE
+// ════════════════════════════════
+function aiRead(){
+  // Returns AI's perceived shell type for the current chamber slot.
+  // Each difficulty can also "panic" and return a completely random guess.
+  const actual=G.shells[G.idx];
+  const rem=G.shells.slice(G.idx);
+  const liveP=rem.filter(s=>s==='live').length/rem.length;
+  const rnd=Math.random;
+  const flip=s=>s==='live'?'blnk':'live';
+  const chaos=()=>rnd()<0.5?'live':'blnk';
+
+  if(diff==='easy'){
+    // Completely blind — might even "stubbornly" guess the same thing twice and be wrong
+    return chaos();
+  }
+  if(diff==='med'){
+    if(rnd()<0.18) return chaos();                           // 18% full panic blunder
+    const probGuess=liveP>=0.5?'live':'blnk';
+    return rnd()<0.62?actual:probGuess;                      // 62% correct, else probability guess
+  }
+  if(diff==='hard'){
+    if(rnd()<0.08) return chaos();                           // 8% sudden panic
+    return rnd()<0.82?actual:flip(actual);                   // 82% accurate
+  }
+  // overkill: almost never wrong, but occasionally overconfident and misreads
+  return rnd()<0.05?flip(actual):actual;                     // 5% rare error
 }
 
 function oppTurn(){
   if(G.turn!=='opp'||_paused)return;
-  const xd=oppItems();
+  const perceived=aiRead(); // compute once so items + target use same perception
+  const xd=oppItems(perceived);
   setTimeout(()=>{
     showThink(false);
     if(G.turn!=='opp'){busy=false;return;}
     const sh=G.shells[G.idx];
     const dm=G.dbl?2:1; G.dbl=false; updDbl();
+    // Re-read perception here so soda ejections in oppItems() don't cause a stale target decision
+    const shotPercv=aiRead();
+    const tgt=shotPercv==='live'?'opp':'self';
     fireGun();
     setTimeout(()=>{
       G.rev=-1;
-      if(sh==='live'){
-        playShot('live');
-        G.pHp=Math.max(0,G.pHp-dm);
-        log('live','fa-solid fa-fire-flame-curved',`OPPONENT → YOU: LIVE hit, −${dm}HP`);
-        flash('sPly',false); playerWasShot(); G.idx++; updateUI();
-        if(chkReload())return; if(chkOver())return;
-        G.turn='player'; setTurnBar('YOUR TURN',true); showBanner('player');
-        setActions(true); busy=false;
+      playShot(sh);
+      G.idx++; updateUI();
+      if(tgt==='opp'){
+        // AI shoots player
+        if(sh==='live'){
+          G.pHp=Math.max(0,G.pHp-dm);
+          log('live','fa-solid fa-fire-flame-curved',`OPPONENT → YOU: LIVE hit, −${dm}HP`);
+          flash('sPly',false); playerWasShot();
+          if(chkReload())return; if(chkOver())return;
+          toPlayer();
+        } else {
+          log('blnk','fa-regular fa-circle','OPPONENT → YOU: BLANK — turn passes');
+          if(chkReload())return; if(chkOver())return;
+          toPlayer();
+        }
       } else {
-        playShot('blnk');
-        log('blnk','fa-regular fa-circle','OPPONENT → OPPONENT: BLANK — no damage, keeps turn');
-        G.idx++; updateUI();
-        if(chkReload())return; if(chkOver())return;
-        showThink(true); setTimeout(oppTurn,900);
+        // AI shoots self — always keeps AI's turn regardless of shell type
+        if(sh==='live'){
+          G.oHp=Math.max(0,G.oHp-dm);
+          log('live','fa-solid fa-fire-flame-curved',`OPPONENT → OPPONENT: LIVE — self-inflicted, −${dm}HP`);
+          flash('sOpp',false);
+          if(chkReload())return; if(chkOver())return;
+          showThink(true); setTimeout(oppTurn,aiDelay());
+        } else {
+          log('blnk','fa-regular fa-circle','OPPONENT → OPPONENT: BLANK — keeps turn');
+          if(chkReload())return; if(chkOver())return;
+          showThink(true); setTimeout(oppTurn,aiDelay());
+        }
       }
     },350);
   },xd+500);
 }
 
-function oppItems(){
+function oppItems(perceived){
   let d=0;
-  const nxt=G.shells[G.idx];
+  const actual=G.shells[G.idx];
   const use=(id,cb)=>{
     const i=G.oItems.findIndex(x=>x&&!x.used&&x.id===id);
     if(i===-1)return false;
     G.oItems[i].used=true; cb(); d+=380; return true;
   };
-  if(nxt==='live'&&Math.random()<.55)
+
+  const r=Math.random;
+
+  if(diff==='easy'){
+    // Chaotic — randomly uses one item with 30% chance, ignores situation completely.
+    // Also wastes heals at full HP, saws blanks, etc.
+    const pool=['saw','soda','apple','handcuffs'].filter(id=>G.oItems.some(x=>x&&!x.used&&x.id===id));
+    if(pool.length&&r()<0.30){
+      const id=pool[Math.floor(r()*pool.length)];
+      if(id==='saw') use('saw',()=>{ G.dbl=true; log('oitem','fa-solid fa-saw','OPPONENT used SAW'); showItemBanner('SAW','fa-solid fa-saw'); updDbl(); });
+      else if(id==='soda'){ if(use('soda',()=>{ log('oitem','fa-solid fa-mug-saucer','OPPONENT used SODA — ejected shell'); showItemBanner('SODA','fa-solid fa-mug-saucer'); G.idx++; updateUI(); })) if(chkReload())return 0; }
+      else if(id==='apple') use('apple',()=>{ G.oHp=Math.min(G.oMax,G.oHp+1); log('oitem','fa-solid fa-apple-whole','OPPONENT used APPLE'); showItemBanner('APPLE','fa-solid fa-apple-whole'); flash('sOpp',true); });
+      else if(id==='handcuffs') use('handcuffs',()=>{ G.pCuffed=2; showCuffModal(2); log('oitem','fa-solid fa-handcuffs','OPPONENT used CUFFS — you are restrained for 2 turns'); showItemBanner('CUFFS','fa-solid fa-handcuffs'); });
+    }
+    return d;
+  }
+
+  if(diff==='med'){
+    // Probability-based but panics ~15% of the time — may use SAW on a blank or soda on a live
+    const panicking=r()<0.15;
+    const actOn=panicking?perceived==='live'?'blnk':'live':perceived; // flip item logic when panicking
+    if(actOn==='live'&&r()<.48)
+      use('saw',()=>{ G.dbl=true; log('oitem','fa-solid fa-saw','OPPONENT used SAW — ×2 next'); showItemBanner('SAW','fa-solid fa-saw'); updDbl(); });
+    if(actOn==='blnk'&&r()<.48)
+      if(use('soda',()=>{ log('oitem','fa-solid fa-mug-saucer','OPPONENT used SODA — ejected shell'); showItemBanner('SODA','fa-solid fa-mug-saucer'); G.idx++; updateUI(); }))
+        if(chkReload())return 0;
+    // Sometimes wastes a heal when not critically low
+    if(G.oHp<=2&&r()<.60) use('apple',()=>{ G.oHp=Math.min(G.oMax,G.oHp+1); log('oitem','fa-solid fa-apple-whole','OPPONENT used APPLE — +1HP'); showItemBanner('APPLE','fa-solid fa-apple-whole'); flash('sOpp',true); });
+    else if(G.oHp>2&&r()<.08) use('apple',()=>{ G.oHp=Math.min(G.oMax,G.oHp+1); log('oitem','fa-solid fa-apple-whole','OPPONENT used APPLE — panicked'); showItemBanner('APPLE','fa-solid fa-apple-whole'); flash('sOpp',true); });
+    return d;
+  }
+
+  if(diff==='hard'){
+    // Mostly sharp but ~8% panic misplay — occasionally saws a blank or sodas a live
+    const misplay=r()<0.08;
+    const actOn=misplay?perceived==='live'?'blnk':'live':perceived;
+    if(actOn==='live'&&r()<.58)
+      use('saw',()=>{ G.dbl=true; log('oitem','fa-solid fa-saw','OPPONENT used SAW — ×2 next'); showItemBanner('SAW','fa-solid fa-saw'); updDbl(); });
+    if(actOn==='blnk'&&r()<.58)
+      if(use('soda',()=>{ log('oitem','fa-solid fa-mug-saucer','OPPONENT used SODA — ejected BLANK'); showItemBanner('SODA','fa-solid fa-mug-saucer'); G.idx++; updateUI(); }))
+        if(chkReload())return 0;
+    if(G.oHp<=3&&r()<.72)
+      use('apple',()=>{ G.oHp=Math.min(G.oMax,G.oHp+1); log('oitem','fa-solid fa-apple-whole','OPPONENT used APPLE — +1HP'); showItemBanner('APPLE','fa-solid fa-apple-whole'); flash('sOpp',true); });
+    if(G.pHp<=2&&r()<.42)
+      use('handcuffs',()=>{ G.pCuffed=2; showCuffModal(2); log('oitem','fa-solid fa-handcuffs','OPPONENT used CUFFS — you are restrained for 2 turns'); showItemBanner('CUFFS','fa-solid fa-handcuffs'); });
+    return d;
+  }
+
+  // ── OVERKILL: omniscient + predictive ──────────────────────────
+  if(actual==='live'&&Math.random()<.65)
     use('saw',()=>{ G.dbl=true; log('oitem','fa-solid fa-saw','OPPONENT used SAW — ×2 next'); showItemBanner('SAW','fa-solid fa-saw'); updDbl(); });
-  if(nxt==='blnk'&&Math.random()<.55)
+  if(actual==='blnk'&&Math.random()<.65)
     if(use('soda',()=>{ log('oitem','fa-solid fa-mug-saucer','OPPONENT used SODA — ejected BLANK'); showItemBanner('SODA','fa-solid fa-mug-saucer'); G.idx++; updateUI(); }))
       if(chkReload())return 0;
-  if(G.oHp<=2&&Math.random()<.7)
+  if(G.oHp<=4&&Math.random()<.85)
     use('apple',()=>{ G.oHp=Math.min(G.oMax,G.oHp+1); log('oitem','fa-solid fa-apple-whole','OPPONENT used APPLE — +1HP'); showItemBanner('APPLE','fa-solid fa-apple-whole'); flash('sOpp',true); });
+  // Predict player threat: AI reads player items and the next shell player will face
+  const playerHasSaw=G.pItems.some(x=>x&&!x.used&&x.id==='saw');
+  const nextForPlayer=G.shells[G.idx+1];
+  const threatHigh=(playerHasSaw&&nextForPlayer==='live')||G.pHp<=2;
+  if(threatHigh&&Math.random()<.75)
+    use('handcuffs',()=>{ G.pCuffed=2; showCuffModal(2); log('oitem','fa-solid fa-handcuffs','OPPONENT PREDICTED YOUR MOVE — CUFFED (2 turns)'); showItemBanner('CUFFS','fa-solid fa-handcuffs'); });
+  else if(Math.random()<.30)
+    use('handcuffs',()=>{ G.pCuffed=2; showCuffModal(2); log('oitem','fa-solid fa-handcuffs','OPPONENT used CUFFS — you are restrained for 2 turns'); showItemBanner('CUFFS','fa-solid fa-handcuffs'); });
   return d;
 }
 
@@ -1549,8 +1826,8 @@ function useItem(i){
       log('item','fa-solid fa-magnifying-glass',`SCOPE: current shell is ${cur.toUpperCase()}`); toast(`SHELL: ${cur==='live'?'LIVE':'BLANK'}`);
       break;
     case'handcuffs':
-      G.cuffed=true; g('cuffBadge').classList.add('on');
-      log('item','fa-solid fa-handcuffs','CUFFS: opponent will skip next turn'); toast('OPPONENT CUFFED');
+      G.oCuffed=2; g('cuffBadge').classList.add('on');
+      log('item','fa-solid fa-handcuffs','CUFFS: opponent will skip 2 turns'); toast('OPPONENT CUFFED');
       break;
   }
   it.used=true; updateUI();
@@ -1567,9 +1844,10 @@ function chkReload(){
 function confirmRecycle(){
   hide('recycleOv');
   const cfg={
-    easy:{lMin:1,lMax:3,bMin:3,bMax:5},
-    med: {lMin:2,lMax:4,bMin:2,bMax:4},
-    hard:{lMin:3,lMax:5,bMin:1,bMax:3},
+    easy:    {lMin:1,lMax:3,bMin:3,bMax:5},
+    med:     {lMin:2,lMax:4,bMin:2,bMax:4},
+    hard:    {lMin:3,lMax:5,bMin:1,bMax:3},
+    overkill:{lMin:3,lMax:5,bMin:1,bMax:3},
   }[diff];
   const lN=rnd_(cfg.lMin,Math.min(cfg.lMax+Math.floor(rnd/3),5));
   const bN=rnd_(cfg.bMin,Math.min(cfg.bMax+Math.floor(rnd/3),5));
@@ -1583,7 +1861,7 @@ function confirmRecycle(){
     log('sys','fa-solid fa-circle-info',`Reloaded: ${lN} LIVE · ${bN} BLANK — items randomized`);
     toast('CHAMBER RELOADED');
     if(G.turn==='player'){ setTurnBar('YOUR TURN',true); showBanner('player'); setActions(true); busy=false; }
-    else{ showThink(true); setTimeout(oppTurn,900); }
+    else{ showThink(true); setTimeout(oppTurn,aiDelay()); }
   });
 }
 
@@ -1743,7 +2021,10 @@ function renderItems(id,items){
 }
 
 function updDbl(){ g('dmgBadge').style.display=G.dbl?'flex':'none'; }
-function setActions(on){ g('btnOpp').disabled=!on; g('btnSelf').disabled=!on; }
+function setActions(on){
+  if(_tutActive && _tutFreezeActions && on) return; // frozen during tutorial info steps
+  g('btnOpp').disabled=!on; g('btnSelf').disabled=!on;
+}
 function setTurnBar(txt,ply){
   const c=ply?'var(--ok)':'var(--wrn)';
   g('turnMsg').innerHTML=`<i class="fa-solid fa-circle-dot" style="color:${c}"></i> ${txt}`;
@@ -1911,6 +2192,7 @@ function initSlugRain() {
 }
 
 function showMainMenu() {
+  stopGameMusic();
   initSlugRain();
   g('mmRnd').textContent  = rnd  > 0 ? pad(rnd)  : '--';
   g('mmWins').textContent = wins > 0 ? String(wins) : '--';
@@ -1933,10 +2215,10 @@ function mmToggleDiff() {
 
 function mmSelDiff(d) {
   diff = d;
-  ['easy','med','hard'].forEach(k => g('mmDiff_'+k).classList.remove('sel'));
+  ['easy','med','hard','overkill'].forEach(k => g('mmDiff_'+k).classList.remove('sel'));
   g('mmDiff_'+d).classList.add('sel');
-  const lbl = {easy:'EASY', med:'NORMAL', hard:'HARD'};
-  g('mmDiffLabel').textContent = lbl[d];
+  const lbl = {easy:'EASY', med:'NORMAL', hard:'HARD', overkill:'OVERKILL'};
+  g('mmDiffLabel').textContent = lbl[d] || d.toUpperCase();
   // Close panel after selection
   _diffOpen = false;
   g('mmDiffPanel').classList.remove('open');
@@ -1944,6 +2226,16 @@ function mmSelDiff(d) {
 }
 
 function mmPlay() {
+  // First-ever click: start tutorial on main menu
+  if(isTutorialNeeded() && !_tutActive){
+    startTutorial();
+    return;
+  }
+  // Tutorial is active and waiting for player to click NEW GAME (step 2)
+  if(_tutActive && _tutWaiting && _tutWaitFor==='mmPlay'){
+    tutCheckpoint('mmPlay');
+    return;
+  }
   hideMainMenu();
   startGame();
 }
@@ -1951,6 +2243,8 @@ function mmPlay() {
 function mmContinue() {
   // Return to game in progress without restarting
   hideMainMenu();
+  stopMenuMusic();
+  startGameMusic();
 }
 
 function mmHighlightRules() {
@@ -2054,11 +2348,28 @@ const GAME_TRACKS = [
 const SFX_LIVE = 'https://codehs.com/uploads/e3eb023cc88974e085860efcede1877d';
 const SFX_BLNK = 'https://codehs.com/uploads/654b0636e6f354cc9c3b4fe9372522ee';
 
+// Pre-loaded SFX pool — avoids fetch/decode lag on every shot
+const _sfxPool = {};
+function _initPool(key, url, n = 4) {
+  _sfxPool[key] = Array.from({ length: n }, () => {
+    const a = new Audio(url);
+    a.preload = 'auto';
+    return a;
+  });
+}
+function _playPool(key, vol) {
+  const pool = _sfxPool[key];
+  if (!pool) return;
+  // Find a slot that has finished (or force-reuse first slot)
+  const a = pool.find(x => x.paused || x.ended) || pool[0];
+  a.volume = Math.max(0, Math.min(1, vol));
+  a.currentTime = 0;
+  a.play().catch(() => {});
+}
+
 function playShot(type) {
   if (!CFG.sfxOn) return;
-  const sfx = new Audio(type === 'live' ? SFX_LIVE : SFX_BLNK);
-  sfx.volume = CFG.sfxVol / 100;
-  sfx.play().catch(() => {});
+  _playPool(type === 'live' ? 'sfx_live' : 'sfx_blnk', CFG.sfxVol / 100);
 }
 
 let _menuAudio   = null;
@@ -2167,13 +2478,14 @@ function playerWasShot() {
   hf.classList.add('flash');
 
   // 2. Play heartbeat over the music for 1 second, then cut it
-  const hitSfx = new Audio(HIT_SFX_URL);
-  hitSfx.volume = CFG.sfxOn ? CFG.sfxVol / 100 : 0.8;
-  hitSfx.play().catch(() => {});
-  setTimeout(() => {
-    hitSfx.pause();
+  const pool = _sfxPool['sfx_hit'];
+  if (pool) {
+    const hitSfx = pool.find(x => x.paused || x.ended) || pool[0];
+    hitSfx.volume = CFG.sfxOn ? CFG.sfxVol / 100 : 0.8;
     hitSfx.currentTime = 0;
-  }, 1000);
+    hitSfx.play().catch(() => {});
+    setTimeout(() => { hitSfx.pause(); hitSfx.currentTime = 0; }, 1000);
+  }
 }
 
 // ════════════════════════════════
@@ -2185,7 +2497,7 @@ function pauseGame() {
   if (_paused) return;
   _paused = true;
   setActions(false);
-  const diffLabels = { easy:'EASY', med:'NORMAL', hard:'HARD' };
+  const diffLabels = { easy:'EASY', med:'NORMAL', hard:'HARD', overkill:'OVERKILL' };
   g('pauseRnd').textContent  = rnd > 0 ? pad(rnd) : '--';
   g('pauseWins').textContent = wins;
   g('pauseDiff').textContent = diffLabels[diff] || diff.toUpperCase();
@@ -2226,7 +2538,352 @@ document.addEventListener('keydown', e => {
   _paused ? resumeGame() : pauseGame();
 });
 
-window.addEventListener('DOMContentLoaded', () => { loadSettings(); runIntro(); });
+window.addEventListener('DOMContentLoaded', () => {
+  // Pre-load SFX pools so shots play instantly
+  _initPool('sfx_live', SFX_LIVE, 4);
+  _initPool('sfx_blnk', SFX_BLNK, 4);
+  _initPool('sfx_hit',  HIT_SFX_URL, 2);
+  loadSettings();
+  runIntro();
+});
+
+// ════════════════════════════════
+// TUTORIAL ENGINE
+// ════════════════════════════════
+const TUT_KEY = 'xorbit_interval_played';
+let _tutActive = false;
+let _tutStep   = 0;
+let _tutWaiting = false;
+let _tutWaitFor = null;
+let _tutFreezeActions = false;
+let _tutPrevLit = null;
+let _tutOpenedPause = false;
+
+function isTutorialNeeded(){ return !localStorage.getItem(TUT_KEY); }
+
+const TUT = [
+  // 0 – Welcome (main menu)
+  {
+    target:null,
+    title:'WELCOME — FIRST BRIEFING',
+    body:'This is your first time entering <b>The Interval</b>. This briefing will walk you through every mechanic — from selecting your difficulty to mastering chamber strategy.<br><br>Click <b>NEXT</b> to advance each step. You can <b>SKIP</b> at any time.',
+    next:'click'
+  },
+  // 1 – Difficulty (main menu)
+  {
+    target:'mmDiffBtn',
+    title:'SELECTING DIFFICULTY',
+    body:'This button opens the difficulty panel. Choose carefully before starting:<br><br><b>EASY</b> — More blanks, AI guesses randomly. Ideal for learning.<br><b>NORMAL</b> — Balanced odds, AI occasionally panics.<br><b>HARD</b> — Fewer blanks, AI is sharp and aggressive.<br><b>OVERKILL</b> — AI reads your decisions. Not for beginners.',
+    next:'click'
+  },
+  // 2 – Click NEW GAME (main menu, action)
+  {
+    target:'mmPlayBtn',
+    title:'START YOUR FIRST GAME',
+    body:'Pick a difficulty (EASY is recommended for first runs), then click <b>NEW GAME</b> to begin. The tutorial will continue inside the game with your first round.',
+    next:'action', action:'mmPlay'
+  },
+  // 3 – Chamber reveal
+  {
+    target:'chamberOv',
+    title:'THE CHAMBER',
+    body:'Before each round the dealer reveals the chamber. You see exactly how many <b>LIVE</b> and <b>BLANK</b> shells are loaded — but <b>not their order</b>.<br><br>Memorise these counts. They are the foundation of every decision. Click <b>BEGIN</b> in the chamber to continue.',
+    next:'action', action:'chamberDone'
+  },
+  // 4 – Shell tracker
+  {
+    target:'shellTrack',
+    title:'SHELL TRACKER',
+    body:'This row tracks the chamber in real time. Each slot reveals its type as it is fired. Use it to maintain a running count of remaining live vs. blank shells — this count directly drives your shot decisions.',
+    next:'click'
+  },
+  // 5 – Odds bar
+  {
+    target:'sidebar',
+    title:'SHELL ANALYSIS',
+    body:'This panel shows the live vs. blank breakdown with a live probability bar. As shells fire, values update instantly.<br><br>Rule of thumb: if <b>blanks outnumber lives</b>, self-shooting is free tempo. If <b>lives dominate</b>, target the opponent.',
+    next:'click'
+  },
+  // 6 – Opponent zone
+  {
+    target:'sOpp',
+    title:'YOUR OPPONENT',
+    body:'This is your opponent. Their HP is shown as hearts. Reduce it to zero to win the round.<br><br>The AI\'s accuracy scales with difficulty — on EASY it guesses blindly, on OVERKILL it predicts your next move.',
+    next:'click'
+  },
+  // 7 – Player zone
+  {
+    target:'sPly',
+    title:'YOU',
+    body:'This is your character. If your HP hits zero, you lose the round. Track your HP alongside the opponent\'s — knowing both counts shapes your risk tolerance.',
+    next:'click'
+  },
+  // 8 – Items: SAW + Apple
+  {
+    target:'pItems',
+    title:'ITEMS — DAMAGE &amp; HEALING',
+    body:'Each round you receive up to 3 random items. Click an item to use it <b>before</b> shooting — you can use multiple in sequence.<br><br><b>SAW</b> — Doubles your next shot\'s damage (1 HP → 2 HP). The ×2 badge lights up. Use it when you know a live shell is next.<br><b>APPLE</b> — Restores 1 HP. Use when you\'re low and confident a blank is coming.',
+    next:'click'
+  },
+  // 9 – Items: Soda + Scope
+  {
+    target:'pItems',
+    title:'ITEMS — INFORMATION',
+    body:'<b>SODA</b> — Ejects and publicly reveals the current shell. The shell is discarded. Use when odds are unclear and you need certainty before deciding.<br><br><b>SCOPE</b> — Reveals the current shell privately (only you see it). Shell stays in the chamber. The safest way to guarantee your next decision without losing a shell.',
+    next:'click'
+  },
+  // 10 – Items: Cuffs
+  {
+    target:'pItems',
+    title:'ITEMS — HANDCUFFS',
+    body:'<b>CUFFS</b> — Restrains your opponent for <b>2 turns</b>. Their turns are skipped completely — no shooting, no items. A CUFFED badge appears on their avatar.<br><br>Best used when you are low on HP, know a live shell is next, or want to chain self-shots without retaliation.',
+    next:'click'
+  },
+  // 11 – Shoot Opponent
+  {
+    target:'btnOpp',
+    title:'SHOOT OPPONENT',
+    body:'Fire the shotgun at your opponent. <b>LIVE</b> = they take damage (1 HP, or 2 HP with SAW active). <b>BLANK</b> = nothing happens and your turn ends.<br><br>Only use this when you have high confidence or confirmed knowledge of a live shell.',
+    next:'click'
+  },
+  // 12 – Shoot Self
+  {
+    target:'btnSelf',
+    title:'SHOOT SELF',
+    body:'Shoot yourself. This is <b>often the optimal play</b>, not a last resort.<br><br><b>BLANK</b> = you take no damage and keep your turn (free extra action).<br><b>LIVE</b> = you take damage and your turn ends.<br><br>When blanks outnumber lives, self-shooting chains free turns and burns the chamber on your clock — not the opponent\'s.',
+    next:'click'
+  },
+  // 13 – Log
+  {
+    target:'logPanel',
+    title:'EVENT LOG',
+    body:'Every action is recorded here — shots, item use, shell reveals, damage, system events. This is your memory.<br><br>Review it to verify your shell count, track opponent item usage, and audit your own decisions. Experienced players check it constantly.',
+    next:'click'
+  },
+  // 14 – Core strategy
+  {
+    target:null,
+    title:'MASTER STRATEGY',
+    body:'The core insight: <b>blank self-shots are free turns</b>. When blanks outnumber lives, self-shooting gives you extra actions and tempo.<br><br>Strong combos:<br>· <b>SCOPE → SAW → shoot opponent</b> — confirmed lethal<br>· <b>CUFFS → chain self-shots → execute</b> — dominant tempo play<br><br>Probability is your weapon. Always check the odds bar before deciding.',
+    next:'click'
+  },
+  // 15 – Pause intro
+  {
+    target:null,
+    title:'PAUSING THE GAME',
+    body:'Press <b>P</b> at any time during a round to pause the game. The game will freeze — no turns will progress while paused.<br><br>From the pause menu you can access <b>SETTINGS</b> and return to the <b>MAIN MENU</b>. Both are also available on the main menu itself.',
+    next:'click'
+  },
+  // 16 – Pause controls (pause overlay shown)
+  {
+    target:'pauseActions',
+    title:'PAUSE MENU CONTROLS',
+    body:'<b>RESUME</b> — return to the active round (also press P).<br><b>SETTINGS</b> — adjust music, SFX volume, and visual options. These persist across sessions.<br><b>MAIN MENU</b> — exit the current run and return to the title screen.<br><br>Settings are also accessible from the main menu before starting a game.',
+    next:'click'
+  },
+  // 17 – Interactive: take your first shot
+  {
+    target:'actionRow',
+    title:'YOUR FIRST SHOT',
+    body:'The game is live. Use any items you have, then make your decision — <b>shoot the opponent</b> or <b>shoot yourself</b>.<br><br>Apply everything from this briefing. The tutorial ends after your shot.',
+    next:'action', action:'shoot'
+  },
+  // 18 – Outro
+  {
+    target:null,
+    title:'BRIEFING COMPLETE',
+    body:'You are ready. Every round escalates — more shells, tighter odds, a sharper opponent.<br><br>Trust the probabilities. Count the shells. Good luck, operator.',
+    next:'end'
+  },
+];
+
+function _tutLit(id){
+  if(_tutPrevLit){
+    const prev=g(_tutPrevLit);
+    if(prev) prev.classList.remove('tut-lit');
+    _tutPrevLit=null;
+  }
+  if(id){
+    const el=g(id);
+    if(el){ el.classList.add('tut-lit'); _tutPrevLit=id; }
+  }
+}
+
+function _posPanel(targetId){
+  const p=g('tutPanel');
+  const fallback=()=>{ p.style.cssText='position:fixed;bottom:24px;top:auto;left:50%;right:auto;transform:translateX(-50%)'; };
+  if(!targetId){ fallback(); return; }
+  const el=g(targetId);
+  if(!el){ fallback(); return; }
+  const r=el.getBoundingClientRect();
+  const pw=Math.min(360,window.innerWidth*0.92);
+  const ph=p.offsetHeight||220;
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const GAP=14;
+  // helpers to clamp horizontal/vertical centers
+  const cx=r=>Math.max(GAP,Math.min(vw-pw-GAP, r.left+r.width/2-pw/2));
+  const cy=r=>Math.max(GAP,Math.min(vh-ph-GAP, r.top+r.height/2-ph/2));
+  let css='position:fixed;transform:none;';
+  if(r.right+GAP+pw<=vw){                     // right
+    css+=`left:${r.right+GAP}px;top:${cy(r)}px;bottom:auto;right:auto;`;
+  } else if(r.left-GAP-pw>=0){                // left
+    css+=`left:${r.left-GAP-pw}px;top:${cy(r)}px;bottom:auto;right:auto;`;
+  } else if(r.bottom+GAP+ph<=vh){             // below
+    css+=`top:${r.bottom+GAP}px;left:${cx(r)}px;bottom:auto;right:auto;`;
+  } else if(r.top-GAP-ph>=0){                 // above
+    css+=`top:${r.top-GAP-ph}px;left:${cx(r)}px;bottom:auto;right:auto;`;
+  } else {                                     // fallback center-bottom
+    fallback(); return;
+  }
+  p.style.cssText=css;
+}
+
+function _showTutStep(n){
+  const step=TUT[n];
+  if(!step) return;
+  _tutStep=n;
+  g('tutHead').textContent=step.title;
+  g('tutBody').innerHTML=step.body;
+  g('tutStep').textContent=`${n+1} / ${TUT.length}`;
+  // Make visible before measuring so offsetHeight is accurate
+  g('tutPanel').classList.add('vis');
+  _tutLit(step.target);
+  _posPanel(step.target);
+  const nb=g('tutNext');
+  if(step.next==='click'){
+    nb.style.display=''; nb.textContent='NEXT →';
+    nb.onclick=tutNext;
+    _tutWaiting=false; _tutWaitFor=null;
+  } else if(step.next==='end'){
+    nb.style.display=''; nb.textContent='DONE ✓';
+    nb.onclick=endTutorial;
+    _tutWaiting=false; _tutWaitFor=null;
+  } else if(step.next==='action'){
+    nb.style.display='none';
+    _tutWaiting=true; _tutWaitFor=step.action;
+  }
+  // Open pause overlay for tutorial step 16, then re-position panel next to target
+  if(n===16){
+    _tutOpenedPause=true;
+    _paused=true;
+    const dl={easy:'EASY',med:'NORMAL',hard:'HARD',overkill:'OVERKILL'};
+    g('pauseRnd').textContent  = rnd>0 ? pad(rnd) : '--';
+    g('pauseWins').textContent = wins||0;
+    g('pauseDiff').textContent = dl[diff]||diff.toUpperCase();
+    if(_gameAudio) _fadeAudio(_gameAudio,_gameAudio.volume,0.05,400);
+    g('pauseOv').classList.add('active');
+    // Re-position now that pauseActions is visible
+    requestAnimationFrame(()=>_posPanel('pauseActions'));
+  }
+  // Close pause overlay and unfreeze actions at interactive shot step 17
+  if(n===17){
+    if(_tutOpenedPause){
+      _tutOpenedPause=false;
+      _paused=false;
+      g('pauseOv').classList.remove('active');
+      if(_gameAudio){
+        const tv=CFG.gameOn?CFG.gameVol/100:0;
+        _fadeAudio(_gameAudio,_gameAudio.volume,tv,400);
+      }
+    }
+    _tutFreezeActions=false;
+    g('btnOpp').disabled=false;
+    g('btnSelf').disabled=false;
+  }
+}
+
+function tutNext(){
+  if(_tutWaiting) return;
+  const step=TUT[_tutStep];
+  if(!step) return;
+  if(step.next==='end'){ endTutorial(); return; }
+  _showTutStep(_tutStep+1);
+}
+
+function tutCheckpoint(event){
+  if(!_tutActive) return;
+  if(!_tutWaiting||_tutWaitFor!==event) return;
+  _tutWaiting=false; _tutWaitFor=null;
+  if(event==='mmPlay'){
+    _tutFreezeActions=true;
+    hideMainMenu();
+    startGame();
+    // step 3 (chamber) will show after chamber opens in _showTutStep path
+    _showTutStep(_tutStep+1);
+  } else {
+    _showTutStep(_tutStep+1);
+  }
+}
+
+function endTutorial(){
+  _tutActive=false;
+  _tutFreezeActions=false;
+  _tutWaiting=false; _tutWaitFor=null;
+  _tutLit(null);
+  g('tutPanel').classList.remove('vis');
+  localStorage.setItem(TUT_KEY,'1');
+  // Close pause overlay if tutorial opened it
+  if(_tutOpenedPause){
+    _tutOpenedPause=false;
+    _paused=false;
+    g('pauseOv').classList.remove('active');
+    if(_gameAudio){
+      const tv=CFG.gameOn?CFG.gameVol/100:0;
+      _fadeAudio(_gameAudio,_gameAudio.volume,tv,400);
+    }
+  }
+  // Re-enable actions if currently in-game
+  if(!g('mainMenu').classList.contains('active')){
+    g('btnOpp').disabled=false;
+    g('btnSelf').disabled=false;
+  }
+}
+
+function mmHowToPlay(){
+  g('tutConfirmOv').classList.add('active');
+}
+function closeTutConfirm(){
+  g('tutConfirmOv').classList.remove('active');
+}
+function mmHowToPlayConfirm(){
+  closeTutConfirm();
+  if(_tutActive) endTutorial();
+  localStorage.removeItem(TUT_KEY);
+  startTutorial();
+}
+
+function startTutorial(){
+  _tutActive=true;
+  _tutFreezeActions=false;
+  _tutStep=0;
+  _showTutStep(0);
+}
 </script>
+
+<!-- TUTORIAL CONFIRM OVERLAY -->
+<div id="tutConfirmOv">
+  <div id="tutConfirmBox">
+    <div id="tutConfirmTitle">REPLAY TUTORIAL?</div>
+    <div id="tutConfirmBody">This will walk you through The Interval from the beginning, covering all mechanics, items, and strategy.</div>
+    <div id="tutConfirmBtns">
+      <button class="tut-btn" id="tutConfirmNo" onclick="closeTutConfirm()">CANCEL</button>
+      <button class="tut-btn" onclick="mmHowToPlayConfirm()">YES, REPLAY</button>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL PANEL -->
+<div id="tutPanel">
+  <div id="tutHead">TUTORIAL</div>
+  <div id="tutBody"></div>
+  <div id="tutFoot">
+    <span id="tutStep"></span>
+    <div id="tutBtns">
+      <button class="tut-btn" id="tutSkip" onclick="endTutorial()">SKIP</button>
+      <button class="tut-btn" id="tutNext">NEXT →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

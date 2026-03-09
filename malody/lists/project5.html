@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Program 5 - Treasure Collector</title>
+  <style>
+    body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    h1 { color: #89b4fa; margin-bottom: 4px; }
+    .subtitle { color: #6c7086; margin-bottom: 10px; font-size: 14px; }
+    .controls { background: #313244; border-radius: 8px; padding: 10px 20px; margin-bottom: 14px; font-size: 13px; color: #a6e3a1; }
+    .controls span { color: #f38ba8; }
+    canvas { border: 2px solid #45475a; border-radius: 8px; background: #11111b; display: block; }
+    #sidebar { margin-top: 14px; background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 14px 20px; width: 560px; font-size: 14px; }
+    .score-line { color: #f9e2af; font-size: 16px; margin-bottom: 8px; }
+    .treasures-line { color: #a6e3a1; }
+  </style>
+</head>
+<body>
+  <h1>Program 5</h1>
+  <div class="subtitle">Treasure Collector Game</div>
+  <div class="controls">
+    Use <span>Arrow Keys</span> to move the player &nbsp;|&nbsp; Collect all 5 food sprites!
+  </div>
+  <canvas id="gameCanvas" width="580" height="400"></canvas>
+  <div id="sidebar">
+    <div class="score-line" id="scoreDisplay">Score: 0 / 5</div>
+    <div class="treasures-line" id="treasureDisplay">Treasures collected: (none yet)</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Player setup
+    const player = { x: 280, y: 190, size: 24, speed: 4, color: "#89b4fa" };
+
+    // Create 5 food sprites at random locations
+    const foodNames = ["apple", "pizza", "cookie", "taco", "mango"];
+    const foodColors = ["#f38ba8", "#fab387", "#f9e2af", "#a6e3a1", "#cba6f7"];
+    const foodEmoji = ["🍎", "🍕", "🍪", "🌮", "🥭"];
+
+    function randomPos(size) {
+      return {
+        x: Math.floor(Math.random() * (canvas.width - size * 2)) + size,
+        y: Math.floor(Math.random() * (canvas.height - size * 2)) + size
+      };
+    }
+
+    let foods = foodNames.map((name, i) => {
+      let pos = randomPos(20);
+      return { name, x: pos.x, y: pos.y, size: 20, color: foodColors[i], emoji: foodEmoji[i], visible: true };
+    });
+
+    // Empty list called "treasures" and a score
+    let treasures = [];
+    let score = 0;
+    let gameOver = false;
+
+    // Key state tracking
+    const keys = {};
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+      e.preventDefault();
+    });
+    document.addEventListener("keyup", e => { keys[e.key] = false; });
+
+    function checkOverlap(player, food) {
+      let dx = player.x - food.x;
+      let dy = player.y - food.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      return dist < player.size / 2 + food.size;
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      // Move player with arrow keys
+      if (keys["ArrowLeft"])  player.x = Math.max(player.size / 2, player.x - player.speed);
+      if (keys["ArrowRight"]) player.x = Math.min(canvas.width - player.size / 2, player.x + player.speed);
+      if (keys["ArrowUp"])    player.y = Math.max(player.size / 2, player.y - player.speed);
+      if (keys["ArrowDown"])  player.y = Math.min(canvas.height - player.size / 2, player.y + player.speed);
+
+      // Check overlaps with food sprites
+      for (let food of foods) {
+        if (!food.visible) continue;
+        if (checkOverlap(player, food)) {
+          // Add the name of the treasure to the list
+          treasures.push(food.name);
+          // Remove the overlapped treasure from the screen
+          food.visible = false;
+          // Increase the score by one
+          score++;
+
+          updateSidebar();
+
+          // When the score reaches 5, show the list of treasures
+          if (score >= 5) {
+            gameOver = true;
+          }
+        }
+      }
+    }
+
+    function updateSidebar() {
+      document.getElementById("scoreDisplay").textContent = `Score: ${score} / 5`;
+      if (treasures.length > 0) {
+        document.getElementById("treasureDisplay").textContent =
+          "Treasures collected: [" + treasures.join(", ") + "]";
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (gameOver) {
+        // Draw win screen with treasure list
+        ctx.fillStyle = "#181825";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#f9e2af";
+        ctx.font = "bold 28px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("You collected all treasures!", canvas.width / 2, 100);
+
+        ctx.fillStyle = "#a6e3a1";
+        ctx.font = "20px monospace";
+        ctx.fillText("Treasures List:", canvas.width / 2, 155);
+
+        ctx.fillStyle = "#cdd6f4";
+        ctx.font = "18px monospace";
+        for (let i = 0; i < treasures.length; i++) {
+          ctx.fillText(`[${i}]  ${foodEmoji[foodNames.indexOf(treasures[i])]}  ${treasures[i]}`, canvas.width / 2, 195 + i * 36);
+        }
+
+        ctx.fillStyle = "#6c7086";
+        ctx.font = "14px monospace";
+        ctx.fillText("Refresh to play again", canvas.width / 2, 390);
+        return;
+      }
+
+      // Draw food sprites
+      for (let food of foods) {
+        if (!food.visible) continue;
+        ctx.font = `${food.size * 2}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(food.emoji, food.x, food.y);
+      }
+
+      // Draw player
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = player.color;
+      ctx.fill();
+      ctx.strokeStyle = "#cdd6f4";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw score on canvas
+      ctx.fillStyle = "#f9e2af";
+      ctx.font = "16px monospace";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(`Score: ${score} / 5`, 10, 10);
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>

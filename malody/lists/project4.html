@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Program 4 - Phrase Generator</title>
+  <style>
+    body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { color: #89b4fa; margin-bottom: 4px; }
+    .subtitle { color: #6c7086; margin-bottom: 30px; font-size: 14px; }
+    .controls { background: #313244; border-radius: 8px; padding: 16px 24px; margin-bottom: 24px; font-size: 14px; color: #a6e3a1; }
+    .controls span { color: #f38ba8; font-weight: bold; }
+    .lists-preview { background: #313244; border-radius: 8px; padding: 16px 24px; margin-bottom: 24px; font-size: 13px; display: flex; gap: 40px; }
+    .list-col h3 { color: #89b4fa; margin: 0 0 8px 0; }
+    .list-col ul { margin: 0; padding-left: 16px; color: #bac2de; }
+    #output { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 24px; min-width: 480px; min-height: 140px; text-align: center; }
+    .label { color: #6c7086; font-size: 13px; margin-bottom: 16px; }
+    .phrase { color: #f9e2af; font-size: 36px; font-weight: bold; margin: 12px 0; }
+    .detail { color: #89b4fa; font-size: 13px; }
+    .history { color: #6c7086; font-size: 13px; margin-top: 16px; border-top: 1px solid #313244; padding-top: 12px; text-align: left; }
+    .flash { animation: flash 0.4s ease; }
+    @keyframes flash { 0%,100%{background:#181825} 50%{background:#2a2a3e} }
+  </style>
+</head>
+<body>
+  <h1>Program 4</h1>
+  <div class="subtitle">Random Phrase Generator</div>
+  <div class="controls">
+    Press <span>A</span> — Generate a random adjective + noun phrase
+  </div>
+
+  <div class="lists-preview">
+    <div class="list-col">
+      <h3>Adjectives (6)</h3>
+      <ul>
+        <li>fluffy</li><li>ancient</li><li>shiny</li>
+        <li>grumpy</li><li>tiny</li><li>brave</li>
+      </ul>
+    </div>
+    <div class="list-col">
+      <h3>Nouns (4)</h3>
+      <ul>
+        <li>mountain</li><li>robot</li>
+        <li>pancake</li><li>library</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="output">
+    <div class="label">Press A to generate a phrase...</div>
+  </div>
+
+  <script>
+    // Create two lists: one with 6 adjectives and one with 4 nouns
+    let adjectives = ["fluffy", "ancient", "shiny", "grumpy", "tiny", "brave"];
+    let nouns = ["mountain", "robot", "pancake", "library"];
+    let history = [];
+
+    document.addEventListener("keydown", function(event) {
+      const key = event.key.toLowerCase();
+
+      // When player presses A:
+      if (key === "a") {
+        // Generate a random number to select an adjective
+        let adjIndex = Math.floor(Math.random() * adjectives.length);
+        // Generate a random number to select a noun
+        let nounIndex = Math.floor(Math.random() * nouns.length);
+
+        let chosenAdj = adjectives[adjIndex];
+        let chosenNoun = nouns[nounIndex];
+
+        // Create a phrase that combines the adjective and the noun
+        let phrase = chosenAdj + " " + chosenNoun;
+
+        history.unshift(phrase);
+        if (history.length > 4) history.pop();
+
+        const out = document.getElementById("output");
+        out.innerHTML = `
+          <div class="label">Generated phrase:</div>
+          <div class="phrase">${phrase}</div>
+          <div class="detail">adjectives[${adjIndex}] = "${chosenAdj}" &nbsp;|&nbsp; nouns[${nounIndex}] = "${chosenNoun}"</div>
+          <div class="history">
+            <strong>History:</strong> ${history.join(" &rarr; ")}
+          </div>
+        `;
+
+        out.classList.remove("flash");
+        void out.offsetWidth;
+        out.classList.add("flash");
+      }
+    });
+  </script>
+</body>
+</html>

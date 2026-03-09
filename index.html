@@ -3,169 +3,610 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Burns Repositories</title>
+  <title>CloudNest Storage</title>
+  <link rel="icon" type="image/x-icon" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      background: #0f0f0f;
+      background: #000;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      font-family: 'Courier New', monospace;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      padding: 24px 16px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: clamp(32px, 6vw, 52px) clamp(24px, 6vw, 48px);
+      text-align: center;
+      animation: cardIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Wordmark ── */
+    .wordmark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .wordmark i {
+      font-size: 1.25rem;
       color: #fff;
     }
-
-    .card {
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 10px;
-      padding: 40px 48px;
-      width: 360px;
-      text-align: center;
+    .wordmark-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .wordmark-text span {
+      font-weight: 300;
+      color: #444;
     }
 
+    /* ── Rule ── */
+    .rule {
+      height: 1px;
+      background: #1a1a1a;
+      margin-bottom: 32px;
+    }
+
+    /* ── Headings ── */
     h1 {
-      font-size: 1.3rem;
-      letter-spacing: 0.15em;
-      color: #e0e0e0;
+      font-size: clamp(1.3rem, 4vw, 1.6rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #fff;
       margin-bottom: 8px;
     }
-
-    p {
-      font-size: 0.78rem;
+    .subtitle {
+      font-size: 0.8rem;
       color: #555;
-      margin-bottom: 28px;
-      letter-spacing: 0.05em;
+      font-weight: 400;
+      line-height: 1.6;
+      margin-bottom: 32px;
     }
 
-    input {
-      width: 100%;
-      padding: 12px 16px;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 6px;
+    /* ── Code boxes — default ── */
+    .code-boxes {
+      display: flex;
+      gap: clamp(6px, 2vw, 12px);
+      justify-content: center;
+      margin-bottom: 20px;
+      transition: opacity 0.3s;
+    }
+    .code-box {
+      width: clamp(44px, 14vw, 60px);
+      height: clamp(52px, 15vw, 68px);
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
       color: #fff;
       font-family: 'Courier New', monospace;
-      font-size: 1rem;
-      letter-spacing: 0.2em;
+      font-size: clamp(1.3rem, 4vw, 1.7rem);
+      font-weight: bold;
       text-align: center;
       text-transform: uppercase;
       outline: none;
-      transition: border-color 0.2s;
+      caret-color: #fff;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, opacity 0.3s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .code-box:focus {
+      border-color: #fff;
+      background: #0d0d0d;
+    }
+    .code-box.filled {
+      border-color: #555;
     }
 
-    input:focus { border-color: #666; }
+    /* ── Code boxes — incorrect state ── */
+    .code-box.incorrect {
+      border-color: #fff;
+      background: #111;
+      color: #666;
+      animation: incorrectPulse 0.4s ease forwards;
+    }
+    @keyframes incorrectPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.25); }
+      50%  { box-shadow: 0 0 0 4px rgba(255,255,255,0.08); }
+      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+    }
 
+    /* ── Code boxes — locked state ── */
+    .code-boxes.is-locked .code-box {
+      border-color: #1c1c1c;
+      background: #080808;
+      color: #2a2a2a;
+      cursor: not-allowed;
+      opacity: 1 !important; /* override inline from JS */
+    }
+    .code-boxes.is-locked {
+      opacity: 1 !important;
+    }
+
+    /* ── Button ── */
     button {
-      margin-top: 16px;
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: #fff;
       color: #000;
-      border: none;
-      border-radius: 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      font-weight: bold;
-      letter-spacing: 0.1em;
+      border: 1px solid #fff;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    button:hover:not(:disabled) {
+      background: transparent;
+      color: #fff;
+    }
+    button:disabled {
+      background: transparent;
+      color: #333;
+      border-color: #1c1c1c;
+      cursor: not-allowed;
+      opacity: 1 !important;
+    }
+    /* locked button specific */
+    #submitBtn.is-locked {
+      border-color: #1c1c1c;
+      color: #2a2a2a;
     }
 
-    button:hover { background: #ddd; }
-    button:disabled { background: #444; color: #777; cursor: not-allowed; }
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 1.5px solid #555;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    #error {
+    /* ── Messages ── */
+    .msg {
       margin-top: 14px;
-      font-size: 0.78rem;
-      color: #e05555;
+      font-size: 0.76rem;
       min-height: 1.1em;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.03em;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .msg.visible  { opacity: 1; transform: translateY(0); }
+    .msg.error    { color: #fff; }
+    .msg.info     { color: #555; }
+
+    /* ── Shake ── */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-7px); }
+      40%     { transform: translateX(7px); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.38s ease; }
+
+    /* ── Footer ── */
+    .footer-rule {
+      height: 1px;
+      background: #1a1a1a;
+      margin: 28px 0 20px;
+    }
+    .footer {
+      font-size: 0.72rem;
+      color: #333;
+      line-height: 1.6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .footer strong { color: #555; font-weight: 500; }
+
+    /* ── Lockout panel ── */
+    #lockoutPanel { display: none; }
+    #lockoutPanel.visible {
+      display: block;
+      animation: fadeSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    #status {
-      margin-top: 14px;
+    .lockout-body {
+      margin-top: 28px;
+      padding-top: 28px;
+      border-top: 1px solid #1a1a1a;
+    }
+
+    .lockout-icon-wrap {
+      width: 48px; height: 48px;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+    .lockout-icon-wrap i {
+      font-size: 1.1rem;
+      color: #fff;
+    }
+
+    .lockout-title {
+      font-size: clamp(1.05rem, 3.5vw, 1.25rem);
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .lockout-sub {
       font-size: 0.78rem;
-      color: #888;
-      min-height: 1.1em;
+      color: #555;
+      line-height: 1.65;
+      margin-bottom: 22px;
+    }
+
+    .master-input {
+      width: 100%;
+      padding: 13px 16px;
+      background: transparent;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Courier New', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.18em;
+      text-align: center;
+      outline: none;
+      caret-color: #fff;
+      transition: border-color 0.15s, background 0.15s;
+      margin-bottom: 12px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .master-input:focus {
+      border-color: #fff;
+      background: #0d0d0d;
+    }
+    .master-input::placeholder { color: #333; letter-spacing: 0.06em; font-family: 'Inter', sans-serif; }
+
+    /* ── Responsive ── */
+    @media (max-width: 400px) {
+      .card { border: none; border-top: 1px solid #1a1a1a; border-radius: 0; padding: 36px 20px; }
     }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h1>ENTER CODE</h1>
-    <p>Enter your teacher code to continue</p>
 
-    <input
-      id="codeInput"
-      type="text"
-      maxlength="10"
-      placeholder="_ _ _ _ _"
-      autocomplete="off"
-      spellcheck="false"
-    />
+    <!-- Wordmark -->
+    <div class="wordmark">
+      <i class="fa-solid fa-cloud"></i>
+      <div class="wordmark-text">CloudNest <span>/ Burns</span></div>
+    </div>
 
-    <button id="submitBtn" onclick="submitCode()">SUBMIT</button>
+    <div class="rule"></div>
 
-    <div id="error"></div>
-    <div id="status"></div>
+    <h1>Teacher Access</h1>
+    <div class="subtitle">
+      Enter the 5-digit code your student<br>provided to access class resources.
+    </div>
+
+    <!-- 5 code boxes -->
+    <div class="code-boxes" id="codeBoxes">
+      <input class="code-box" maxlength="1" autocomplete="off" spellcheck="false" inputmode="text" aria-label="Code digit 1" />
+      <input class="code-box" maxlength="1" autocomplete="off" spellcheck="false" inputmode="text" aria-label="Code digit 2" />
+      <input class="code-box" maxlength="1" autocomplete="off" spellcheck="false" inputmode="text" aria-label="Code digit 3" />
+      <input class="code-box" maxlength="1" autocomplete="off" spellcheck="false" inputmode="text" aria-label="Code digit 4" />
+      <input class="code-box" maxlength="1" autocomplete="off" spellcheck="false" inputmode="text" aria-label="Code digit 5" />
+    </div>
+
+    <input type="hidden" id="codeInput" />
+
+    <button id="submitBtn" onclick="submitCode()">
+      <i class="fa-solid fa-arrow-right-to-bracket"></i>
+      Continue
+    </button>
+
+    <div id="error"  class="msg error"></div>
+    <div id="status" class="msg info"></div>
+
+    <!-- Lockout panel -->
+    <div id="lockoutPanel">
+      <div class="lockout-body">
+        <div class="lockout-icon-wrap">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div class="lockout-title">Access Locked</div>
+        <div class="lockout-sub">
+          3 incorrect attempts detected.<br>Enter the master code to unlock.
+        </div>
+        <input
+          id="masterInput"
+          class="master-input"
+          type="password"
+          maxlength="20"
+          placeholder="Enter master code"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="masterBtn" onclick="submitMasterCode()">
+          <i class="fa-solid fa-unlock"></i>
+          Unlock
+        </button>
+        <div id="masterError"  class="msg error"></div>
+        <div id="masterStatus" class="msg info"></div>
+      </div>
+    </div>
+
+    <div class="footer-rule"></div>
+    <div class="footer">
+      <i class="fa-regular fa-circle-user" style="color:#333;"></i>
+      Built by <strong>Demitri Burns</strong>
+    </div>
+
   </div>
 
-  <!-- Supabase JS client (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script>
+    // ── Code box wiring ──────────────────────────────────────────────────────
+    const boxes = Array.from(document.querySelectorAll('.code-box'));
+
+    boxes.forEach((box, i) => {
+      box.addEventListener('input', () => {
+        const val = box.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        box.value = val.slice(-1);
+        box.classList.toggle('filled', !!box.value);
+        if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+      });
+
+      box.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !box.value && i > 0) {
+          boxes[i - 1].value = '';
+          boxes[i - 1].classList.remove('filled');
+          boxes[i - 1].focus();
+        }
+        if (e.key === 'Enter') submitCode();
+      });
+
+      box.addEventListener('paste', e => {
+        e.preventDefault();
+        const text = (e.clipboardData.getData('text') || '')
+          .toUpperCase().replace(/[^A-Z0-9]/g, '');
+        text.split('').forEach((char, j) => {
+          if (i + j < boxes.length) {
+            boxes[i + j].value = char;
+            boxes[i + j].classList.add('filled');
+          }
+        });
+        boxes[Math.min(i + text.length, boxes.length - 1)].focus();
+      });
+
+      box.addEventListener('click', () => box.select());
+    });
+
+    boxes[0].focus();
+
+    // ── Supabase ─────────────────────────────────────────────────────────────
     const SUPABASE_URL  = 'https://tcazkkqkgqpyyxepgkdd.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjYXpra3FrZ3FweXl4ZXBna2RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjE4NTAsImV4cCI6MjA4NzQzNzg1MH0.sZ9biW6Y4fdipOcf7CYzUpNTJz_wwlppFCBfUog2WX8';
 
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+    // ── State ─────────────────────────────────────────────────────────────────
+    let wrongAttempts = 0;
+    const MAX_ATTEMPTS = 3;
+    let locked = false;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function showMsg(el, text, icon = '') {
+      el.innerHTML = icon ? `<i class="${icon}"></i> ${text}` : text;
+      el.classList.toggle('visible', !!text);
+    }
+
+    function triggerShake(target) {
+      const el = target || document.getElementById('codeBoxes');
+      el.classList.add('shake');
+      el.addEventListener('animationend', () => el.classList.remove('shake'), { once: true });
+    }
+
+    // Flash boxes with "incorrect" style, then clear them
+    function flashIncorrect() {
+      boxes.forEach(b => b.classList.add('incorrect'));
+      setTimeout(() => {
+        boxes.forEach(b => {
+          b.classList.remove('incorrect', 'filled');
+          b.value = '';
+        });
+      }, 600);
+    }
+
+    function engageLockout() {
+      locked = true;
+
+      // Visual locked state on boxes
+      const wrap = document.getElementById('codeBoxes');
+      wrap.classList.add('is-locked');
+      boxes.forEach(b => { b.disabled = true; b.value = ''; b.classList.remove('filled', 'incorrect'); });
+
+      // Visual locked state on submit button
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.classList.add('is-locked');
+      btn.innerHTML = '<i class="fa-solid fa-lock"></i> Locked';
+
+      showMsg(document.getElementById('error'), '');
+
+      const panel = document.getElementById('lockoutPanel');
+      panel.classList.add('visible');
+
+      setTimeout(() => document.getElementById('masterInput').focus(), 400);
+    }
+
+    function disengageLockout() {
+      locked = false;
+      wrongAttempts = 0;
+
+      const wrap = document.getElementById('codeBoxes');
+      wrap.classList.remove('is-locked');
+      boxes.forEach(b => {
+        b.disabled = false;
+        b.value = '';
+        b.classList.remove('filled', 'incorrect');
+      });
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = false;
+      btn.classList.remove('is-locked');
+      btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Continue';
+
+      document.getElementById('lockoutPanel').classList.remove('visible');
+      document.getElementById('masterInput').value = '';
+      showMsg(document.getElementById('masterError'), '');
+      showMsg(document.getElementById('masterStatus'), '');
+
+      boxes[0].focus();
+    }
+
+    // ── Master code ───────────────────────────────────────────────────────────
+    document.getElementById('masterInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitMasterCode();
+    });
+
+    async function submitMasterCode() {
+      const input  = document.getElementById('masterInput');
+      const btn    = document.getElementById('masterBtn');
+      const error  = document.getElementById('masterError');
+      const status = document.getElementById('masterStatus');
+
+      const code = input.value.trim().toUpperCase();
+
+      showMsg(error, '');
+      showMsg(status, '');
+
+      if (!code) {
+        showMsg(error, 'Please enter the master code.', 'fa-solid fa-circle-exclamation');
+        triggerShake(input);
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Verifying…';
+
+      const { data, error: dbError } = await db
+        .from('master_codes')
+        .select('code')
+        .eq('code', code)
+        .single();
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-unlock"></i> Unlock';
+
+      if (dbError || !data) {
+        showMsg(error, 'Wrong master code.', 'fa-solid fa-circle-xmark');
+        triggerShake(input);
+        input.value = '';
+        input.focus();
+        return;
+      }
+
+      disengageLockout();
+    }
+
+    // ── Main submit ───────────────────────────────────────────────────────────
     async function submitCode() {
-      const input  = document.getElementById('codeInput');
+      if (locked) return;
+
       const btn    = document.getElementById('submitBtn');
       const error  = document.getElementById('error');
       const status = document.getElementById('status');
 
-      const code = input.value.trim().toUpperCase();
+      const code = boxes.map(b => b.value).join('').trim().toUpperCase();
+      document.getElementById('codeInput').value = code;
 
-      error.textContent  = '';
-      status.textContent = '';
+      showMsg(error, '');
+      showMsg(status, '');
 
       if (!code) {
-        error.textContent = 'Please enter a code.';
+        showMsg(error, 'Please enter your code.', 'fa-solid fa-circle-exclamation');
+        triggerShake();
+        boxes[0].focus();
         return;
       }
 
-      btn.disabled       = true;
-      status.textContent = 'Checking code…';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Checking…';
 
-      // Query the teacher_codes table for a matching code
       const { data, error: dbError } = await db
         .from('teacher_codes')
         .select('code, redirect')
         .eq('code', code)
         .single();
 
-      btn.disabled       = false;
-      status.textContent = '';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-arrow-right-to-bracket"></i> Continue';
 
       if (dbError || !data) {
-        error.textContent = 'Invalid code. Please try again.';
+        wrongAttempts++;
+        const remaining = MAX_ATTEMPTS - wrongAttempts;
+
+        flashIncorrect();
+        triggerShake();
+
+        if (wrongAttempts >= MAX_ATTEMPTS) {
+          setTimeout(() => engageLockout(), 650); // wait for flash to finish
+        } else {
+          setTimeout(() => {
+            showMsg(error,
+              `Invalid code — ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`,
+              'fa-solid fa-triangle-exclamation'
+            );
+            boxes[0].focus();
+          }, 650);
+        }
         return;
       }
 
-      // Redirect to the URL stored in the "redirect" column
       window.location.href = data.redirect;
     }
-
-    // Allow pressing Enter to submit
-    document.getElementById('codeInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') submitCode();
-    });
   </script>
 
 </body>

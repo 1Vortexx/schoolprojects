@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Program 6 - Gift Box</title>
+  <style>
+    body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; margin: 0; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    h1 { color: #89b4fa; margin-bottom: 4px; }
+    .subtitle { color: #6c7086; margin-bottom: 10px; font-size: 14px; }
+    .controls { background: #313244; border-radius: 8px; padding: 10px 20px; margin-bottom: 14px; font-size: 13px; color: #a6e3a1; }
+    .controls span { color: #f38ba8; }
+    canvas { border: 2px solid #45475a; border-radius: 8px; background: #11111b; display: block; }
+    #sidebar { margin-top: 14px; background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 14px 20px; width: 560px; font-size: 14px; }
+    .gifts-label { color: #6c7086; margin-bottom: 6px; }
+    .gifts-list { color: #cba6f7; }
+  </style>
+</head>
+<body>
+  <h1>Program 6</h1>
+  <div class="subtitle">Mystery Gift Box</div>
+  <div class="controls">
+    Press <span>A</span> — Open the gift box for a surprise!
+  </div>
+  <canvas id="gameCanvas" width="580" height="400"></canvas>
+  <div id="sidebar">
+    <div class="gifts-label">Remaining gifts:</div>
+    <div class="gifts-list" id="giftsDisplay">Loading...</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Create a list that contains 6 different gifts
+    let gifts = ["bicycle", "telescope", "guitar", "skateboard", "camera", "art set"];
+    const giftEmoji = {
+      "bicycle": "🚲", "telescope": "🔭", "guitar": "🎸",
+      "skateboard": "🛹", "camera": "📷", "art set": "🎨"
+    };
+
+    let currentMessage = "";
+    let currentEmoji = "";
+    let gameEnded = false;
+    let shake = 0;
+    let boxOpen = false;
+    let boxOpenTimer = 0;
+    let resultHistory = [];
+
+    function updateSidebar() {
+      const el = document.getElementById("giftsDisplay");
+      if (gifts.length > 0) {
+        el.textContent = `[${gifts.join(", ")}]  (${gifts.length} remaining)`;
+      } else {
+        el.textContent = "(empty)";
+      }
+    }
+    updateSidebar();
+
+    document.addEventListener("keydown", function(event) {
+      const key = event.key.toLowerCase();
+
+      if (key === "a" && !gameEnded) {
+        // Check to see if the list's length is greater than 0
+        if (gifts.length > 0) {
+          // Pick a random index from the list
+          let randomIndex = Math.floor(Math.random() * gifts.length);
+          // Print that item on the screen
+          let gift = gifts[randomIndex];
+          currentMessage = gift;
+          currentEmoji = giftEmoji[gift] || "🎁";
+          resultHistory.unshift(`"${gift}"`);
+          if (resultHistory.length > 6) resultHistory.pop();
+          // Remove the item from the list
+          gifts.splice(randomIndex, 1);
+          updateSidebar();
+
+          boxOpen = true;
+          boxOpenTimer = 90; // frames to show open box
+          shake = 10;
+        } else {
+          // If the list is empty: display "The box is empty." and end the game
+          currentMessage = "The box is empty.";
+          currentEmoji = "";
+          gameEnded = true;
+          updateSidebar();
+        }
+      }
+    });
+
+    // Draw gift box sprite
+    function drawGiftBox(x, y, isOpen, shakeOffset) {
+      const bx = x + shakeOffset;
+      const by = y;
+
+      ctx.save();
+
+      if (isOpen) {
+        // Draw open box bottom
+        ctx.fillStyle = "#a6e3a1";
+        ctx.fillRect(bx - 40, by + 10, 80, 55);
+        ctx.fillStyle = "#89b4fa";
+        ctx.fillRect(bx - 42, by + 6, 84, 12); // ribbon
+        // Draw open lid tilted
+        ctx.save();
+        ctx.translate(bx - 40, by + 10);
+        ctx.rotate(-0.4);
+        ctx.fillStyle = "#a6e3a1";
+        ctx.fillRect(0, -50, 80, 50);
+        ctx.fillStyle = "#89b4fa";
+        ctx.fillRect(-2, -52, 84, 10);
+        ctx.restore();
+      } else {
+        // Draw closed box
+        ctx.fillStyle = "#a6e3a1";
+        ctx.fillRect(bx - 40, by - 40, 80, 105);
+        // Ribbon vertical
+        ctx.fillStyle = "#89b4fa";
+        ctx.fillRect(bx - 6, by - 40, 12, 105);
+        // Ribbon horizontal
+        ctx.fillRect(bx - 40, by + 6, 80, 12);
+        // Bow
+        ctx.beginPath();
+        ctx.ellipse(bx - 18, by - 40, 18, 10, -0.4, 0, Math.PI * 2);
+        ctx.fillStyle = "#89b4fa";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(bx + 18, by - 40, 18, 10, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        // Bow center knot
+        ctx.beginPath();
+        ctx.arc(bx, by - 40, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "#74c7ec";
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (gameEnded) {
+        // Game over / empty box screen
+        ctx.fillStyle = "#181825";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = "60px serif";
+        ctx.textAlign = "center";
+        ctx.fillText("📦", canvas.width / 2, 140);
+
+        ctx.fillStyle = "#f38ba8";
+        ctx.font = "bold 26px monospace";
+        ctx.fillText("The box is empty.", canvas.width / 2, 200);
+
+        ctx.fillStyle = "#6c7086";
+        ctx.font = "15px monospace";
+        ctx.fillText("Game over — refresh to play again", canvas.width / 2, 240);
+
+        ctx.fillStyle = "#a6e3a1";
+        ctx.font = "14px monospace";
+        ctx.fillText("Gifts you received:", canvas.width / 2, 285);
+        for (let i = 0; i < resultHistory.length; i++) {
+          ctx.fillStyle = "#cdd6f4";
+          ctx.fillText(resultHistory[i], canvas.width / 2, 310 + i * 22);
+        }
+        return;
+      }
+
+      // Shake animation
+      let shakeOffset = 0;
+      if (shake > 0) {
+        shakeOffset = Math.sin(shake * 0.9) * 5;
+        shake--;
+      }
+
+      // Draw box
+      let isOpen = boxOpen && boxOpenTimer > 0;
+      drawGiftBox(canvas.width / 2, 210, isOpen, shakeOffset);
+
+      if (boxOpenTimer > 0) {
+        boxOpenTimer--;
+        if (boxOpenTimer === 0) boxOpen = false;
+      }
+
+      // Show gift received
+      if (currentMessage && currentMessage !== "The box is empty.") {
+        ctx.font = "52px serif";
+        ctx.textAlign = "center";
+        ctx.fillText(currentEmoji, canvas.width / 2, 80);
+
+        ctx.fillStyle = "#f9e2af";
+        ctx.font = "bold 22px monospace";
+        ctx.fillText(`You got: ${currentMessage}!`, canvas.width / 2, 110);
+
+        ctx.fillStyle = "#6c7086";
+        ctx.font = "13px monospace";
+        ctx.fillText(`${gifts.length} gift(s) remaining — press A for another`, canvas.width / 2, 135);
+      } else {
+        ctx.fillStyle = "#6c7086";
+        ctx.font = "15px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("Press A to open the gift box!", canvas.width / 2, 50);
+      }
+
+      // History
+      if (resultHistory.length > 0) {
+        ctx.fillStyle = "#45475a";
+        ctx.font = "13px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("Previously received: " + resultHistory.join(", "), 14, canvas.height - 14);
+      }
+    }
+
+    function gameLoop() {
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>

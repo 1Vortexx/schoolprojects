@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Program 1 - Number List</title>
+  <style>
+    body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { color: #89b4fa; margin-bottom: 4px; }
+    .subtitle { color: #6c7086; margin-bottom: 30px; font-size: 14px; }
+    .controls { background: #313244; border-radius: 8px; padding: 16px 24px; margin-bottom: 24px; font-size: 14px; color: #a6e3a1; }
+    .controls span { color: #f38ba8; font-weight: bold; }
+    #output { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 24px; min-width: 400px; min-height: 120px; font-size: 18px; line-height: 1.8; }
+    .label { color: #6c7086; font-size: 13px; margin-bottom: 8px; }
+    .list-display { color: #f9e2af; }
+    .flash { animation: flash 0.3s ease; }
+    @keyframes flash { 0%,100%{background:#181825} 50%{background:#313244} }
+  </style>
+</head>
+<body>
+  <h1>Program 1</h1>
+  <div class="subtitle">Number List</div>
+  <div class="controls">
+    Press <span>A</span> — Add 4 unique random numbers (0–50) to the list<br>
+    Press <span>B</span> — Print the list to the screen
+  </div>
+  <div id="output">
+    <div class="label">List contents will appear here after pressing B...</div>
+  </div>
+
+  <script>
+    // Create a list that already has five numbers in it
+    let numbers = [10, 25, 33, 47, 8];
+
+    document.addEventListener("keydown", function(event) {
+      const key = event.key.toLowerCase();
+
+      // When the user presses A, add 4 unique random numbers between 0 and 50
+      if (key === "a") {
+        let added = 0;
+        while (added < 4) {
+          let randomNum = Math.floor(Math.random() * 51); // 0 to 50 inclusive
+          if (!numbers.includes(randomNum)) {
+            numbers.push(randomNum);
+            added++;
+          }
+        }
+        const out = document.getElementById("output");
+        out.innerHTML = `<div class="label">Added 4 unique random numbers. Press B to display the list.</div>`;
+        out.classList.remove("flash");
+        void out.offsetWidth;
+        out.classList.add("flash");
+      }
+
+      // When the user presses B, print the list to the screen
+      if (key === "b") {
+        const out = document.getElementById("output");
+        out.innerHTML = `
+          <div class="label">Current list (${numbers.length} items):</div>
+          <div class="list-display">[${numbers.join(", ")}]</div>
+        `;
+        out.classList.remove("flash");
+        void out.offsetWidth;
+        out.classList.add("flash");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Program 3 - Animal Picker</title>
+  <style>
+    body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { color: #89b4fa; margin-bottom: 4px; }
+    .subtitle { color: #6c7086; margin-bottom: 30px; font-size: 14px; }
+    .controls { background: #313244; border-radius: 8px; padding: 16px 24px; margin-bottom: 24px; font-size: 14px; color: #a6e3a1; }
+    .controls span { color: #f38ba8; font-weight: bold; }
+    #output { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 24px; min-width: 400px; min-height: 160px; font-size: 18px; text-align: center; }
+    .label { color: #6c7086; font-size: 13px; margin-bottom: 16px; }
+    .index-info { color: #89b4fa; font-size: 14px; margin-bottom: 8px; }
+    .animal { color: #a6e3a1; font-size: 48px; margin: 16px 0; }
+    .history { color: #6c7086; font-size: 13px; margin-top: 16px; border-top: 1px solid #313244; padding-top: 12px; }
+    .flash { animation: flash 0.3s ease; }
+    @keyframes flash { 0%,100%{background:#181825} 50%{background:#2a2a3e} }
+  </style>
+</head>
+<body>
+  <h1>Program 3</h1>
+  <div class="subtitle">Random Animal Picker</div>
+  <div class="controls">
+    Press <span>A</span> — Pick a random animal from the list
+  </div>
+  <div id="output">
+    <div class="label">Press A to pick a random animal...</div>
+  </div>
+
+  <script>
+    // Create a list with animal names
+    let animals = ["dog", "cat", "fish", "bird", "hamster"];
+    let history = [];
+
+    document.addEventListener("keydown", function(event) {
+      const key = event.key.toLowerCase();
+
+      // When player presses A: generate random index, use if statement to print element
+      if (key === "a") {
+        // Generate a random number that corresponds to an index in the list
+        let randomIndex = Math.floor(Math.random() * animals.length);
+
+        let chosen = "";
+
+        // Use an if statement to print just that element from the list
+        if (randomIndex === 0) {
+          chosen = animals[0];
+        } else if (randomIndex === 1) {
+          chosen = animals[1];
+        } else if (randomIndex === 2) {
+          chosen = animals[2];
+        } else if (randomIndex === 3) {
+          chosen = animals[3];
+        } else if (randomIndex === 4) {
+          chosen = animals[4];
+        }
+
+        history.unshift(`Run ${history.length + 1}: index ${randomIndex} → "${chosen}"`);
+        if (history.length > 5) history.pop();
+
+        const out = document.getElementById("output");
+        out.innerHTML = `
+          <div class="label">Random index generated:</div>
+          <div class="index-info">animals[${randomIndex}]</div>
+          <div class="animal">${chosen}</div>
+          <div class="history">
+            <strong>Previous picks:</strong><br>
+            ${history.join("<br>")}
+          </div>
+        `;
+
+        out.classList.remove("flash");
+        void out.offsetWidth;
+        out.classList.add("flash");
+      }
+    });
+  </script>
+</body>
+</html>

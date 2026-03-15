@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Orb Collector</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+      user-select: none;
+    }
+
+    #hud {
+      display: flex;
+      gap: 48px;
+      margin-bottom: 10px;
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+
+    #hud span { color: #aaa; }
+    #hud strong { color: #fff; }
+
+    #wrap {
+      position: relative;
+      line-height: 0;
+    }
+
+    canvas {
+      display: block;
+      border: 2px solid #333;
+    }
+
+    #overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.82);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    #overlay.show { display: flex; }
+
+    #overlayTitle {
+      font-size: 52px;
+      font-weight: bold;
+      margin-bottom: 14px;
+      letter-spacing: 4px;
+    }
+
+    #overlayMsg {
+      font-size: 17px;
+      color: #bbb;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    #overlayBtn {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 12px 36px;
+      font-size: 18px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    #overlayBtn:hover { background: #ddd; }
+
+    #controls {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <span>SCORE&nbsp;<strong id="scoreDisp">0</strong></span>
+  <span>TIME&nbsp;<strong id="timeDisp">10</strong></span>
+  <span>LIVES&nbsp;<strong id="livesDisp">1</strong></span>
+</div>
+
+<div id="wrap">
+  <canvas id="canvas" width="620" height="460"></canvas>
+  <div id="overlay" class="show">
+    <div id="overlayTitle">ORB COLLECTOR</div>
+    <div id="overlayMsg">
+      Move with <strong>WASD</strong> or <strong>Arrow Keys</strong><br>
+      Collect orbs before the countdown runs out!
+    </div>
+    <button id="overlayBtn" onclick="startGame()">START GAME</button>
+  </div>
+</div>
+
+<div id="controls">WASD / ARROW KEYS to move</div>
+
+<script>
+// ─── Canvas & DOM ────────────────────────────────────────────────────────────
+const canvas     = document.getElementById('canvas');
+const ctx        = canvas.getContext('2d');
+const W          = canvas.width;
+const H          = canvas.height;
+const scoreDisp  = document.getElementById('scoreDisp');
+const timeDisp   = document.getElementById('timeDisp');
+const livesDisp  = document.getElementById('livesDisp');
+const overlay    = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayMsg   = document.getElementById('overlayMsg');
+
+// ─── Audio ───────────────────────────────────────────────────────────────────
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function resumeAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+function playCollect() {
+  resumeAudio();
+  // Short rising chime
+  [0, 0.08, 0.16].forEach((delay, i) => {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    const freq = [523, 659, 784][i]; // C5, E5, G5
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.18);
+    osc.start(audioCtx.currentTime + delay);
+    osc.stop(audioCtx.currentTime + delay + 0.2);
+  });
+}
+
+function playPenalty() {
+  resumeAudio();
+  // Descending "wah wah wah"
+  [0, 0.18, 0.36, 0.54].forEach((delay, i) => {
+    const osc  = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime([370, 277, 220, 185][i], audioCtx.currentTime + delay);
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime + delay);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + 0.16);
+    osc.start(audioCtx.currentTime + delay);
+    osc.stop(audioCtx.currentTime + delay + 0.18);
+  });
+}
+
+function playGameOver() {
+  resumeAudio();
+  const osc  = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 1.0);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.0);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 1.0);
+}
+
+// ─── Backgrounds ─────────────────────────────────────────────────────────────
+const BACKGROUNDS = [
+  { bg: '#0d0d1a', accent: '#7b68ee', orbColor: '#c8b8ff' },
+  { bg: '#001a0d', accent: '#39d353', orbColor: '#90ffb8' },
+  { bg: '#1a0000', accent: '#ff4444', orbColor: '#ffaaaa' },
+  { bg: '#0d1a1a', accent: '#00cfcf', orbColor: '#aaffff' },
+  { bg: '#1a1000', accent: '#ffaa00', orbColor: '#ffe08c' },
+  { bg: '#0a001a', accent: '#cc44ff', orbColor: '#e8a8ff' },
+];
+
+// Pre-compute star fields for each background
+const STAR_FIELDS = BACKGROUNDS.map((_, bi) => {
+  const stars = [];
+  // Simple LCG seeded by bg index
+  let s = (bi + 1) * 747796405;
+  const lcg = () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 0x100000000; };
+  for (let i = 0; i < 60; i++) {
+    stars.push({ x: lcg() * W, y: lcg() * H, r: lcg() * 1.5 + 0.3, a: lcg() * 0.6 + 0.2 });
+  }
+  return stars;
+});
+
+// ─── Game State ──────────────────────────────────────────────────────────────
+let player, orb, score, lives, countdown, bgIdx, running, lastTs, tickAccum;
+
+const keys = {};
+addEventListener('keydown', e => { keys[e.key] = true; });
+addEventListener('keyup',   e => { keys[e.key] = false; });
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function randOrbPos() {
+  let x, y, tries = 0;
+  do {
+    x = orb.r + Math.random() * (W - orb.r * 2);
+    y = orb.r + Math.random() * (H - orb.r * 2);
+    tries++;
+  } while (tries < 20 && Math.hypot(x - player.x, y - player.y) < 120);
+  return { x, y };
+}
+
+function updateHUD() {
+  scoreDisp.textContent = score;
+  timeDisp.textContent  = countdown;
+  livesDisp.textContent = lives;
+}
+
+function showOverlay(title, msg, btnText) {
+  overlayTitle.textContent = title;
+  overlayMsg.innerHTML     = msg;
+  document.getElementById('overlayBtn').textContent = btnText;
+  overlay.classList.add('show');
+}
+
+// ─── Start / Reset ───────────────────────────────────────────────────────────
+function startGame() {
+  overlay.classList.remove('show');
+  score      = 0;
+  lives      = 1;
+  countdown  = 10;
+  bgIdx      = 0;
+  running    = true;
+  lastTs     = null;
+  tickAccum  = 0;
+
+  player = { x: W / 2, y: H / 2, size: 22, speed: 190 };
+  orb    = { x: 0, y: 0, r: 13, pulse: 0 };
+  const p = randOrbPos();
+  orb.x = p.x; orb.y = p.y;
+
+  updateHUD();
+  requestAnimationFrame(loop);
+}
+
+// ─── Game Logic ──────────────────────────────────────────────────────────────
+function collectOrb() {
+  playCollect();
+
+  score++;
+  countdown++;          // Add 1 to countdown
+  bgIdx = (bgIdx + 1) % BACKGROUNDS.length;  // Change background/scene
+
+  if (score >= 5) {     // Score hit 5 → add life, reset score
+    lives++;
+    score = 0;
+  }
+
+  const p = randOrbPos();
+  orb.x = p.x; orb.y = p.y;
+  orb.pulse = 0;
+
+  updateHUD();
+}
+
+function onCountdownEnd() {
+  if (lives > 0) {
+    lives--;
+    countdown = 10;
+    tickAccum = 0;
+    playPenalty();
+    updateHUD();
+  } else {
+    running = false;
+    playGameOver();
+    showOverlay('GAME OVER', `Final Score: ${score}`, 'PLAY AGAIN');
+  }
+}
+
+function update(dt) {
+  // ── Player movement ──
+  const spd = player.speed * dt;
+  const half = player.size / 2;
+  if (keys['ArrowLeft'] || keys['a'] || keys['A'])  player.x = Math.max(half,   player.x - spd);
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) player.x = Math.min(W-half, player.x + spd);
+  if (keys['ArrowUp']   || keys['w'] || keys['W'])  player.y = Math.max(half,   player.y - spd);
+  if (keys['ArrowDown'] || keys['s'] || keys['S'])  player.y = Math.min(H-half, player.y + spd);
+
+  // ── Orb pulse animation ──
+  orb.pulse = (orb.pulse + dt * 3) % (Math.PI * 2);
+
+  // ── Collision ──
+  if (Math.hypot(player.x - orb.x, player.y - orb.y) < half + orb.r) {
+    collectOrb();
+  }
+
+  // ── Countdown tick ──
+  tickAccum += dt;
+  if (tickAccum >= 1) {
+    tickAccum -= 1;
+    countdown--;
+    timeDisp.textContent = countdown;
+    if (countdown <= 0) {
+      onCountdownEnd();
+    }
+  }
+}
+
+// ─── Drawing ─────────────────────────────────────────────────────────────────
+function draw() {
+  const theme = BACKGROUNDS[bgIdx];
+  const stars = STAR_FIELDS[bgIdx];
+
+  // Background
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  stars.forEach(star => {
+    ctx.globalAlpha = star.a;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // ── Orb ──
+  const pulse = Math.sin(orb.pulse);
+  const glowR = orb.r + 6 + pulse * 4;
+
+  // Outer glow
+  const glow = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, glowR * 2);
+  glow.addColorStop(0,   theme.orbColor);
+  glow.addColorStop(0.4, theme.accent + '88');
+  glow.addColorStop(1,   theme.accent + '00');
+  ctx.beginPath();
+  ctx.arc(orb.x, orb.y, glowR * 2, 0, Math.PI * 2);
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // Core
+  const core = ctx.createRadialGradient(orb.x - orb.r * 0.3, orb.y - orb.r * 0.3, 1, orb.x, orb.y, glowR);
+  core.addColorStop(0, '#ffffff');
+  core.addColorStop(0.5, theme.orbColor);
+  core.addColorStop(1,   theme.accent);
+  ctx.beginPath();
+  ctx.arc(orb.x, orb.y, glowR, 0, Math.PI * 2);
+  ctx.fillStyle = core;
+  ctx.fill();
+
+  // ── Player ──
+  const half = player.size / 2;
+
+  // Player glow
+  const playerGlow = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, player.size * 1.5);
+  playerGlow.addColorStop(0, '#00d4ff44');
+  playerGlow.addColorStop(1, '#00d4ff00');
+  ctx.beginPath();
+  ctx.arc(player.x, player.y, player.size * 1.5, 0, Math.PI * 2);
+  ctx.fillStyle = playerGlow;
+  ctx.fill();
+
+  // Player body (square)
+  ctx.fillStyle = '#00d4ff';
+  ctx.fillRect(player.x - half, player.y - half, player.size, player.size);
+
+  // Player highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.fillRect(player.x - half + 2, player.y - half + 2, half - 2, half - 2);
+
+  // Player border
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(player.x - half, player.y - half, player.size, player.size);
+
+  // ── Countdown warning flash ──
+  if (countdown <= 3) {
+    const alpha = 0.08 + 0.07 * Math.sin(Date.now() / 120);
+    ctx.fillStyle = `rgba(255,60,60,${alpha})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+// ─── Game Loop ───────────────────────────────────────────────────────────────
+function loop(ts) {
+  if (!running) return;
+  if (!lastTs) lastTs = ts;
+  const dt = Math.min((ts - lastTs) / 1000, 0.1); // cap at 100ms
+  lastTs = ts;
+
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

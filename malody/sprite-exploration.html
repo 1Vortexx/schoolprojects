@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lake Adventure — Sprite Explorer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #07111a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+      user-select: none;
+      overflow: hidden;
+    }
+    #wrap { position: relative; }
+    canvas { display: block; border: 3px solid #1a3040; }
+
+    /* Overlay */
+    #overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 15, 25, 0.88);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 28px;
+    }
+    #overlay.show { display: flex; }
+    #oTitle {
+      font-size: 44px;
+      font-weight: bold;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      text-shadow: 0 0 20px rgba(100,200,255,0.6);
+    }
+    #oMsg {
+      font-size: 15px;
+      color: #9ab;
+      line-height: 1.9;
+      margin-bottom: 26px;
+    }
+    #oMsg b { color: #cde; }
+    #oBtn {
+      background: #cde;
+      color: #07111a;
+      border: none;
+      padding: 11px 38px;
+      font-size: 17px;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.15s;
+    }
+    #oBtn:hover { background: #fff; }
+    #hint {
+      margin-top: 9px;
+      font-size: 12px;
+      color: #2a4050;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="wrap">
+  <canvas id="canvas" width="640" height="460"></canvas>
+  <div id="overlay" class="show">
+    <div id="oTitle">LAKE ADVENTURE</div>
+    <div id="oMsg">
+      You are <b>Hoppy the Frog</b>!<br>
+      Move with <b>WASD</b> or <b>Arrow Keys</b><br>
+      Eat <b>flies</b> to grow bigger!<br>
+      Avoid the <b>snake</b> or you'll shrink!<br>
+      Score <b>10</b> points to win!<br><br>
+      Press <b>SPACE</b> (A button) to reset at any time.
+    </div>
+    <button id="oBtn" onclick="startGame()">START GAME</button>
+  </div>
+</div>
+<div id="hint">WASD / ARROWS to move &nbsp;|&nbsp; SPACE = reset</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CANVAS SETUP
+// ═══════════════════════════════════════════════════
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width;   // 640
+const H = canvas.height;  // 460
+const HUD_H = 38;         // height of the HUD bar at top
+
+// ═══════════════════════════════════════════════════
+//  AUDIO — Web Audio API
+// ═══════════════════════════════════════════════════
+let audioCtx = null;
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// Play a single tone: frequency, oscillator type, startTime, duration, volume
+function tone(freq, type, startT, dur, vol = 0.15) {
+  const osc = audioCtx.createOscillator();
+  const g   = audioCtx.createGain();
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startT);
+  g.gain.setValueAtTime(vol, startT);
+  g.gain.exponentialRampToValueAtTime(0.0001, startT + dur);
+  osc.start(startT);
+  osc.stop(startT + dur + 0.01);
+}
+
+// ── Background Music ──────────────────────────────────────────────────────────
+// 3 measures × 4 beats = 12 beats total
+// Instrument 1: sine wave (melody)   — 12 notes (used 12 times ≥ 4 ✓)
+// Instrument 2: triangle wave (bass) —  6 notes (used  6 times ≥ 4 ✓)
+const BEAT     = 0.30;  // seconds per beat
+const LOOP_DUR = 12 * BEAT;  // one full 3-measure loop (~3.6 s)
+
+// Melody: C5 E5 G5 E5 | F5 A5 F5 D5 | G5 E5 C5 G4
+const MELODY_FREQS = [
+  523.25, 659.25, 783.99, 659.25,  // measure 1
+  698.46, 880.00, 698.46, 587.33,  // measure 2
+  783.99, 659.25, 523.25, 392.00,  // measure 3
+];
+// Bass: C3 G3 | F3 C3 | G3 C3  (one note every 2 beats)
+const BASS_FREQS = [
+  130.81, 196.00,
+  174.61, 130.81,
+  196.00, 130.81,
+];
+
+function scheduleMusicAt(t) {
+  // Instrument 1 — sine (melody), 12 notes
+  MELODY_FREQS.forEach((f, i) => tone(f, 'sine',     t + i * BEAT,       BEAT * 0.72, 0.09));
+  // Instrument 2 — triangle (bass), 6 notes (every 2 beats)
+  BASS_FREQS.forEach((f, i)   => tone(f, 'triangle', t + i * BEAT * 2,   BEAT * 1.55, 0.07));
+}
+
+let musicPlaying = false;
+let musicTimer   = null;
+let nextMusicT   = 0;
+
+function musicTick() {
+  if (!musicPlaying) return;
+  const now = audioCtx.currentTime;
+  while (nextMusicT < now + 0.5) {
+    scheduleMusicAt(nextMusicT);
+    nextMusicT += LOOP_DUR;
+  }
+  musicTimer = setTimeout(musicTick, 200);
+}
+function startMusic() {
+  initAudio();
+  musicPlaying = true;
+  nextMusicT   = audioCtx.currentTime;
+  musicTick();
+}
+function stopMusic() {
+  musicPlaying = false;
+  clearTimeout(musicTimer);
+}
+
+// ── Sound Effects ─────────────────────────────────────────────────────────────
+function sfxEat() {
+  // Rising chime when frog eats a fly
+  initAudio();
+  const t = audioCtx.currentTime;
+  [523, 659, 784].forEach((f, i) => tone(f, 'sine', t + i * 0.07, 0.13, 0.2));
+}
+
+function sfxHurt() {
+  // Descending buzz when snake hits frog
+  initAudio();
+  const t = audioCtx.currentTime;
+  [320, 220, 150].forEach((f, i) => tone(f, 'sawtooth', t + i * 0.11, 0.16, 0.19));
+}
+
+function sfxWin() {
+  initAudio();
+  const t = audioCtx.currentTime;
+  [523, 659, 784, 1047].forEach((f, i) => tone(f, 'sine', t + i * 0.13, 0.25, 0.2));
+}
+
+function sfxGameOver() {
+  initAudio();
+  const t   = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g   = audioCtx.createGain();
+  osc.connect(g); g.connect(audioCtx.destination);
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(200, t);
+  osc.frequency.exponentialRampToValueAtTime(38, t + 1.3);
+  g.gain.setValueAtTime(0.3, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 1.3);
+  osc.start(t); osc.stop(t + 1.35);
+}
+
+// ═══════════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════════
+const keys = {};
+window.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  // Controller A button = SPACE — reset game at any time
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    e.preventDefault();
+    startGame();
+  }
+});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+// ═══════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════
+let state   = 'idle';   // 'idle' | 'playing' | 'gameover' | 'win'
+let player, enemy, food, score, elapsed, invTimer, popups;
+
+const WIN_SCORE    = 10;
+const PLAYER_SPEED = 165;  // px/s
+
+function randPos(margin = 55) {
+  return {
+    x: margin + Math.random() * (W - margin * 2),
+    y: HUD_H + margin + Math.random() * (H - HUD_H - margin * 2),
+  };
+}
+
+function startGame() {
+  initAudio();
+
+  // ── Part 1: Player sprite "Hoppy" ──────────────────────────────
+  const pp = randPos();     // random x,y location
+  player = {
+    name:      'Hoppy',     // appropriate name
+    x: pp.x, y: pp.y,
+    scale:     3,           // starting scale
+    frame:     0,           // costume index: 0=idle, 1=walk-A, 2=walk-B
+    frameTimer: 0,
+    facing:    1,           // 1=right, -1=left
+  };
+
+  // ── Part 2: Enemy sprite "Snake" ───────────────────────────────
+  const ep = randPos();
+  enemy = {
+    name: 'Snake',
+    x: ep.x, y: ep.y,
+    vx: 50, vy: 50,         // velocity 50,50  — bounces on walls
+    frameTimer: 0, frame: 0,
+  };
+
+  // ── Part 3: Food sprite "Fly" ──────────────────────────────────
+  const fp = randPos();
+  food = {
+    name: 'Fly',
+    x: fp.x, y: fp.y,
+    vx: -50, vy: 50,        // velocity -50,50 — bounces on walls
+    frameTimer: 0, frame: 0,
+  };
+
+  score    = 0;
+  elapsed  = 0;
+  invTimer = 0;
+  popups   = [];
+  state    = 'playing';
+
+  document.getElementById('overlay').classList.remove('show');
+  stopMusic();
+  startMusic();   // Part 3: background music starts with the game
+}
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function pRadius() { return 6 + player.scale * 5; }
+
+function fmt(s) {
+  return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
+}
+
+// ═══════════════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════════════
+
+// Part 4: Player overlaps food sprite ───────────────
+function onEat() {
+  sfxEat();                            // play a premade sound
+  player.scale++;                      // change player sprite scale by +1
+  score++;
+  // Food moves to a new random location (so it doesn't just sit there)
+  const fp = randPos();
+  food.x = fp.x; food.y = fp.y;
+  popups.push({ x: food.x, y: food.y - 14, text: '+1 GROW!', color: '#80FF90', life: 1.1 });
+
+  // Part 7: scoring system — win at 10
+  if (score >= WIN_SCORE) {
+    state = 'win';
+    stopMusic();
+    sfxWin();
+    showOverlay('YOU WIN!', `Score: ${score} &nbsp;|&nbsp; Time: ${fmt(elapsed)}`, 'PLAY AGAIN');
+  }
+}
+
+// Part 5: Player overlaps enemy sprite ──────────────
+function onHurt() {
+  sfxHurt();                           // play a different sound
+  player.scale--;                      // change player sprite scale by -1
+  invTimer = 1.6;                      // brief invincibility to prevent repeated hits
+  const ep = randPos();
+  enemy.x = ep.x; enemy.y = ep.y;     // move enemy to new random location
+  popups.push({ x: player.x, y: player.y - 14, text: 'OUCH!', color: '#FF7070', life: 1.1 });
+
+  // Part 6: if player scale = 0, game over
+  if (player.scale <= 0) {
+    state = 'gameover';
+    stopMusic();
+    sfxGameOver();
+    showOverlay('GAME OVER', `Score: ${score} &nbsp;|&nbsp; Time: ${fmt(elapsed)}`, 'TRY AGAIN');
+  }
+}
+
+function update(dt) {
+  if (state !== 'playing') return;
+  elapsed += dt;
+
+  // ── Part 1: controller movement (+ button / arrow keys) ────────
+  let mx = 0, my = 0;
+  if (keys['ArrowLeft']  || keys['a'] || keys['A']) mx -= 1;
+  if (keys['ArrowRight'] || keys['d'] || keys['D']) mx += 1;
+  if (keys['ArrowUp']    || keys['w'] || keys['W']) my -= 1;
+  if (keys['ArrowDown']  || keys['s'] || keys['S']) my += 1;
+
+  const moving = mx !== 0 || my !== 0;
+  if (moving) {
+    const len = Math.sqrt(mx * mx + my * my);
+    player.x += (mx / len) * PLAYER_SPEED * dt;
+    player.y += (my / len) * PLAYER_SPEED * dt;
+    if (mx !== 0) player.facing = mx > 0 ? 1 : -1;
+    // Cycle through 3 costume frames while moving
+    player.frameTimer += dt;
+    if (player.frameTimer >= 0.14) {
+      player.frameTimer = 0;
+      player.frame = (player.frame + 1) % 3;  // 3 costume options
+    }
+  } else {
+    player.frame = 0;
+    player.frameTimer = 0;
+  }
+
+  // Stays on screen (clamped to canvas bounds)
+  const pr = pRadius();
+  player.x = Math.max(pr,        Math.min(W - pr, player.x));
+  player.y = Math.max(pr + HUD_H, Math.min(H - pr, player.y));
+
+  // ── Part 2: enemy bounces on walls ─────────────────────────────
+  enemy.x += enemy.vx * dt;
+  enemy.y += enemy.vy * dt;
+  const er = 15;
+  if (enemy.x - er < 0)      { enemy.x = er;      enemy.vx =  Math.abs(enemy.vx); }
+  if (enemy.x + er > W)      { enemy.x = W - er;  enemy.vx = -Math.abs(enemy.vx); }
+  if (enemy.y - er < HUD_H)  { enemy.y = er + HUD_H; enemy.vy =  Math.abs(enemy.vy); }
+  if (enemy.y + er > H)      { enemy.y = H - er;  enemy.vy = -Math.abs(enemy.vy); }
+  enemy.frameTimer += dt;
+  if (enemy.frameTimer >= 0.22) { enemy.frameTimer = 0; enemy.frame ^= 1; }
+
+  // ── Part 3: food bounces on walls ──────────────────────────────
+  food.x += food.vx * dt;
+  food.y += food.vy * dt;
+  const fr = 11;
+  if (food.x - fr < 0)      { food.x = fr;       food.vx =  Math.abs(food.vx); }
+  if (food.x + fr > W)      { food.x = W - fr;   food.vx = -Math.abs(food.vx); }
+  if (food.y - fr < HUD_H)  { food.y = fr + HUD_H; food.vy =  Math.abs(food.vy); }
+  if (food.y + fr > H)      { food.y = H - fr;   food.vy = -Math.abs(food.vy); }
+  food.frameTimer += dt;
+  if (food.frameTimer >= 0.16) { food.frameTimer = 0; food.frame ^= 1; }
+
+  // Invincibility countdown
+  if (invTimer > 0) invTimer -= dt;
+
+  // Collision: player ↔ food (Part 4)
+  if (Math.hypot(player.x - food.x, player.y - food.y) < pr + fr) onEat();
+
+  // Collision: player ↔ enemy (Part 5) — only when not invincible
+  if (invTimer <= 0 && Math.hypot(player.x - enemy.x, player.y - enemy.y) < pr + er) onHurt();
+
+  // Fade out popups
+  popups.forEach(p => { p.y -= 28 * dt; p.life -= dt; });
+  popups = popups.filter(p => p.life > 0);
+}
+
+// ═══════════════════════════════════════════════════
+//  DRAWING
+// ═══════════════════════════════════════════════════
+
+// ── Lake scene background (Part 1: scene) ────────────────────────
+function drawBackground() {
+  // Sky
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.45);
+  sky.addColorStop(0, '#4A90C4');
+  sky.addColorStop(1, '#A8D8F0');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H * 0.45);
+
+  // Sun
+  ctx.fillStyle = '#FFF59D';
+  ctx.beginPath(); ctx.arc(W - 78, 58, 28, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#FFD740'; ctx.lineWidth = 2;
+  for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
+    ctx.beginPath();
+    ctx.moveTo(W - 78 + Math.cos(a) * 34, 58 + Math.sin(a) * 34);
+    ctx.lineTo(W - 78 + Math.cos(a) * 44, 58 + Math.sin(a) * 44);
+    ctx.stroke();
+  }
+
+  // Clouds
+  function cloud(cx, cy, r) {
+    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+    [
+      [0, 0, r], [r * 0.8, -r * 0.3, r * 0.75],
+      [-r * 0.75, -r * 0.2, r * 0.65], [r * 0.35, r * 0.22, r * 0.65]
+    ].forEach(([dx, dy, cr]) => {
+      ctx.beginPath(); ctx.arc(cx + dx, cy + dy, cr, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+  cloud(110, 65, 26);
+  cloud(290, 52, 32);
+  cloud(470, 72, 24);
+
+  // Mountains
+  ctx.fillStyle = '#4A7A90';
+  ctx.beginPath();
+  ctx.moveTo(0, H * 0.45);
+  ctx.lineTo(45,  H * 0.20); ctx.lineTo(110, H * 0.36);
+  ctx.lineTo(185, H * 0.13); ctx.lineTo(265, H * 0.38);
+  ctx.lineTo(345, H * 0.10); ctx.lineTo(425, H * 0.30);
+  ctx.lineTo(505, H * 0.20); ctx.lineTo(580, H * 0.35);
+  ctx.lineTo(W,   H * 0.45);
+  ctx.closePath(); ctx.fill();
+
+  // Snow caps
+  ctx.fillStyle = 'rgba(240,248,255,0.9)';
+  [[185, H * 0.13, 32], [345, H * 0.10, 40], [505, H * 0.20, 28]].forEach(([px, py, r]) => {
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px - r, py + r * 1.2);
+    ctx.lineTo(px + r, py + r * 1.2);
+    ctx.closePath(); ctx.fill();
+  });
+
+  // Lake water
+  const water = ctx.createLinearGradient(0, H * 0.45, 0, H);
+  water.addColorStop(0, '#3580A8');
+  water.addColorStop(1, '#163E58');
+  ctx.fillStyle = water;
+  ctx.fillRect(0, H * 0.45, W, H * 0.55);
+
+  // Water shimmer
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 1;
+  for (let wy = H * 0.49; wy < H; wy += 20) {
+    ctx.beginPath();
+    for (let wx = 0; wx < W; wx += 55) {
+      ctx.moveTo(wx, wy);
+      ctx.bezierCurveTo(wx + 14, wy - 4, wx + 42, wy + 4, wx + 55, wy);
+    }
+    ctx.stroke();
+  }
+
+  // Lily pads
+  const pads = [
+    [85,  H * 0.56, 0.3],  [215, H * 0.70, -0.2],
+    [390, H * 0.60, 0.5],  [530, H * 0.80, -0.4],
+    [155, H * 0.84, 0.1],  [455, H * 0.50, 0.6],
+  ];
+  pads.forEach(([lx, ly, rot]) => {
+    ctx.save(); ctx.translate(lx, ly); ctx.rotate(rot);
+    ctx.fillStyle = '#2E7D32';
+    ctx.beginPath(); ctx.ellipse(0, 0, 22, 14, 0, 0, Math.PI * 2); ctx.fill();
+    // Notch (gap in lily pad)
+    ctx.fillStyle = '#3580A8';
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 7, -0.45, 0.45); ctx.closePath(); ctx.fill();
+    // Veins
+    ctx.strokeStyle = '#1B5E20'; ctx.lineWidth = 0.8;
+    [0, 0.6, -0.6].forEach(a => {
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * 20, Math.sin(a) * 12); ctx.stroke();
+    });
+    // Pink flower on some pads
+    if (Math.abs(rot) < 0.35) {
+      ctx.fillStyle = '#F48FB1';
+      ctx.beginPath(); ctx.arc(0, -3, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath(); ctx.arc(0, -3, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  });
+}
+
+// ── Hoppy the Frog — 3 costume frames ─────────────────────────────
+// Frame 0: Idle/sitting    Frame 1: Walk-A (legs spread)    Frame 2: Walk-B (legs compact)
+function drawFrog(cx, cy, scale, frame, facing, flash) {
+  if (flash) return;   // blink during invincibility
+  const s = 6 + scale * 5;
+  ctx.save();
+  ctx.translate(cx, cy);
+  if (facing < 0) ctx.scale(-1, 1);
+
+  // Body dimensions change per costume frame
+  const bW = frame === 1 ? s * 1.22 : frame === 2 ? s * 0.86 : s;
+  const bH = frame === 1 ? s * 0.74 : frame === 2 ? s * 1.08 : s * 0.94;
+
+  // Drop shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.16)';
+  ctx.beginPath(); ctx.ellipse(0, bH * 0.88, bW * 0.7, s * 0.18, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Main body
+  ctx.fillStyle = '#43A047';
+  ctx.beginPath(); ctx.ellipse(0, 0, bW, bH, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Belly
+  ctx.fillStyle = '#C8E6C9';
+  ctx.beginPath(); ctx.ellipse(0, bH * 0.25, bW * 0.57, bH * 0.47, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Spots
+  ctx.fillStyle = '#388E3C';
+  ctx.beginPath(); ctx.ellipse(-bW * 0.35, -bH * 0.18, s * 0.15, s * 0.11, 0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( bW * 0.32,  bH * 0.04, s * 0.12, s * 0.09, -0.3, 0, Math.PI * 2); ctx.fill();
+
+  // Back legs (3 distinct poses for 3 costumes)
+  const spread = frame === 0 ? 0.34 : frame === 1 ? 0.70 : 0.16;
+  ctx.strokeStyle = '#388E3C'; ctx.lineWidth = s * 0.21; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  [-1, 1].forEach(side => {
+    ctx.beginPath();
+    ctx.moveTo(side * s * 0.58, bH * 0.4);
+    ctx.lineTo(side * (s * 0.58 + spread * s), bH * 0.4 + s * 0.52);
+    ctx.lineTo(side * (s * 0.28 + spread * s * 0.55), bH * 0.4 + s * 0.82);
+    ctx.stroke();
+  });
+
+  // Front arms
+  ctx.lineWidth = s * 0.17;
+  [-1, 1].forEach(side => {
+    ctx.beginPath();
+    ctx.moveTo(side * bW * 0.76, 0);
+    ctx.lineTo(side * (bW * 0.9 + s * 0.22), s * 0.3);
+    ctx.stroke();
+  });
+
+  // Eyes
+  const eyeY = -bH * 0.62, eyeR = s * 0.27, puR = s * 0.13;
+  [-1, 1].forEach(side => {
+    const ex = side * s * 0.37;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(ex, eyeY, eyeR, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(ex + side * eyeR * 0.22, eyeY, puR, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(ex + side * eyeR * 0.1, eyeY - puR * 0.4, puR * 0.4, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Smile
+  ctx.strokeStyle = '#2E7D32'; ctx.lineWidth = s * 0.09;
+  ctx.beginPath(); ctx.arc(0, bH * 0.08, s * 0.27, 0.25, Math.PI - 0.25); ctx.stroke();
+
+  ctx.restore();
+}
+
+// ── Snake (enemy) ─────────────────────────────────────────────────
+function drawSnake(cx, cy, vx, vy, t) {
+  const s     = 15;
+  const angle = Math.atan2(vy, vx);
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+
+  // Body segments trailing behind head (slithering via sin)
+  for (let i = 4; i >= 1; i--) {
+    const bx = -s * i * 0.88;
+    const by = Math.sin(t * 4.5 + i * 0.95) * s * 0.48;
+    const r  = s * (0.62 - i * 0.04);
+    ctx.fillStyle = i % 2 === 0 ? '#558B2F' : '#689F38';
+    ctx.beginPath(); ctx.ellipse(bx, by, r * 1.1, r * 0.9, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Rattle tail
+  const tx = -s * 4 * 0.88 - s * 0.7;
+  const ty = Math.sin(t * 4.5 + 4 * 0.95) * s * 0.48;
+  ctx.fillStyle = '#BFB048';
+  [0, 1, 2].forEach(i => {
+    ctx.beginPath();
+    ctx.ellipse(tx - i * s * 0.32, ty, s * (0.24 - i * 0.04), s * 0.18, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Head
+  ctx.fillStyle = '#33691E';
+  ctx.beginPath(); ctx.ellipse(0, 0, s, s * 0.72, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2E7D32';
+  ctx.beginPath(); ctx.ellipse(-s * 0.28, 0, s * 0.28, s * 0.22, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes with slit pupils
+  [-1, 1].forEach(side => {
+    ctx.fillStyle = '#FFD600';
+    ctx.beginPath(); ctx.arc(s * 0.46, side * s * 0.30, s * 0.19, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.ellipse(s * 0.49, side * s * 0.30, s * 0.06, s * 0.14, 0, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Flickering tongue
+  if (Math.sin(t * 9) > 0) {
+    ctx.strokeStyle = '#E53935'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(s, 0); ctx.lineTo(s * 1.5, 0);
+    ctx.moveTo(s * 1.5, 0); ctx.lineTo(s * 1.75, -s * 0.24);
+    ctx.moveTo(s * 1.5, 0); ctx.lineTo(s * 1.75,  s * 0.24);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ── Fly (food) ────────────────────────────────────────────────────
+function drawFly(cx, cy, t) {
+  const s    = 10;
+  const flap = Math.abs(Math.sin(t * 24));
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  // Wings — rapid flap animation
+  ctx.save();
+  ctx.scale(1, 0.65 + flap * 0.7);
+  const wa = 0.32 + flap * 0.5;
+  ctx.fillStyle   = `rgba(180,218,255,${wa})`;
+  ctx.strokeStyle = `rgba(80,140,210,${wa * 0.8})`;
+  ctx.lineWidth   = 0.7;
+  [
+    [-s * 0.88, -s * 0.22, s * 0.95, s * 0.42, -0.38],
+    [-s * 0.72,  s * 0.22, s * 0.65, s * 0.28, -0.2 ],
+    [ s * 0.88, -s * 0.22, s * 0.95, s * 0.42,  0.38],
+    [ s * 0.72,  s * 0.22, s * 0.65, s * 0.28,  0.2 ],
+  ].forEach(([wx, wy, rw, rh, rot]) => {
+    ctx.beginPath(); ctx.ellipse(wx, wy, rw, rh, rot, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  });
+  ctx.restore();
+
+  // Abdomen (striped)
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.ellipse(0, s * 0.38, s * 0.38, s * 0.62, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3a3a00';
+  [0.2, 0.5, 0.8].forEach(frac => {
+    ctx.beginPath(); ctx.ellipse(0, s * (0.08 + frac * 0.60), s * 0.30, s * 0.06, 0, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Thorax
+  ctx.fillStyle = '#2a2a0a';
+  ctx.beginPath(); ctx.arc(0, -s * 0.08, s * 0.35, 0, Math.PI * 2); ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#1a1a0a';
+  ctx.beginPath(); ctx.arc(0, -s * 0.62, s * 0.32, 0, Math.PI * 2); ctx.fill();
+
+  // Compound eyes
+  ctx.fillStyle = '#900';
+  ctx.beginPath(); ctx.ellipse(-s * 0.19, -s * 0.68, s * 0.20, s * 0.22, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( s * 0.19, -s * 0.68, s * 0.20, s * 0.22,  0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,180,180,0.35)';
+  ctx.beginPath(); ctx.arc(-s * 0.24, -s * 0.72, s * 0.07, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( s * 0.16, -s * 0.72, s * 0.07, 0, Math.PI * 2); ctx.fill();
+
+  // Antennae
+  ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 1; ctx.lineCap = 'round';
+  [[-0.1, -0.5, -0.6, -1.3], [0.1, -0.5, 0.6, -1.3]].forEach(([x1, y1, x2, y2]) => {
+    ctx.beginPath();
+    ctx.moveTo(s * x1, s * y1);
+    ctx.bezierCurveTo(s * x1 * 2, s * (y1 - 0.5), s * x2 * 0.9, s * y2, s * x2, s * (y2 + 0.2));
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+// ── HUD bar ───────────────────────────────────────────────────────
+function drawHUD() {
+  ctx.fillStyle = 'rgba(4,12,22,0.70)';
+  ctx.fillRect(0, 0, W, HUD_H);
+
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 14px "Courier New"';
+
+  ctx.fillStyle = '#FFD740';
+  ctx.textAlign = 'left';
+  ctx.fillText(`SCORE: ${score}/${WIN_SCORE}`, 12, HUD_H / 2);
+
+  ctx.fillStyle = '#80DEEA';
+  ctx.textAlign = 'center';
+  ctx.fillText(`TIME: ${fmt(elapsed)}`, W / 2, HUD_H / 2);
+
+  ctx.fillStyle = '#A5D6A7';
+  ctx.textAlign = 'right';
+  ctx.fillText(`SIZE: ${player ? player.scale : '-'}`, W - 12, HUD_H / 2);
+
+  // Tiny size bar
+  if (player) {
+    const bx = W - 12 - 70, by = HUD_H - 6, bw = 62, bh = 4;
+    ctx.fillStyle = '#1a2a1a';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = '#66BB6A';
+    ctx.fillRect(bx, by, bw * Math.min(player.scale / 9, 1), bh);
+  }
+  ctx.textAlign = 'left';
+}
+
+// ── Floating popup text ────────────────────────────────────────────
+function drawPopups() {
+  popups.forEach(p => {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, p.life * 2);
+    ctx.font = 'bold 13px "Courier New"';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = p.color;
+    ctx.fillText(p.text, p.x, p.y);
+    ctx.restore();
+  });
+}
+
+// ── Red screen flash during invincibility ─────────────────────────
+function drawInvFlash() {
+  if (invTimer > 0 && Math.floor(invTimer * 7) % 2 === 0) {
+    ctx.fillStyle = 'rgba(255,40,40,0.13)';
+    ctx.fillRect(0, 0, W, H);
+  }
+}
+
+// ── Sprite labels (show names) ────────────────────────────────────
+function drawLabel(x, y, text, color) {
+  ctx.font = '10px "Courier New"';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillText(text, x + 1, y + 1);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y);
+}
+
+// ═══════════════════════════════════════════════════
+//  OVERLAY
+// ═══════════════════════════════════════════════════
+function showOverlay(title, msg, btn) {
+  document.getElementById('oTitle').textContent = title;
+  document.getElementById('oMsg').innerHTML     = msg;
+  document.getElementById('oBtn').textContent   = btn;
+  document.getElementById('overlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════
+//  MAIN DRAW
+// ═══════════════════════════════════════════════════
+let blinkTimer = 0, flashOn = false;
+
+function draw(t) {
+  drawBackground();
+
+  if (state !== 'idle') {
+    // Invincibility blink logic
+    const blinkFlash = invTimer > 0 && Math.floor(invTimer * 8) % 2 === 0;
+
+    // Food sprite — Fly (drawn first so frog appears on top)
+    drawFly(food.x, food.y, t);
+    drawLabel(food.x, food.y + 20, food.name, '#90EE90');
+
+    // Enemy sprite — Snake
+    drawSnake(enemy.x, enemy.y, enemy.vx, enemy.vy, t);
+    drawLabel(enemy.x, enemy.y + 22, enemy.name, '#FF8080');
+
+    // Player sprite — Hoppy the Frog (3 costumes)
+    drawFrog(player.x, player.y, player.scale, player.frame, player.facing, blinkFlash);
+    if (!blinkFlash) drawLabel(player.x, player.y + pRadius() + 10, player.name, '#FFD740');
+
+    drawInvFlash();
+    drawPopups();
+    drawHUD();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════════════════════
+let lastTs = null;
+
+function loop(ts) {
+  if (!lastTs) lastTs = ts;
+  const dt = Math.min((ts - lastTs) / 1000, 0.1);
+  lastTs = ts;
+
+  const t = ts / 1000;  // global time in seconds, for animations
+
+  update(dt);
+  draw(t);
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

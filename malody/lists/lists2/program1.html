@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Program 1 — Name Input &amp; Splash</title>
+  <style>
+    body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 40px; }
+    h1 { color: #89b4fa; margin-bottom: 4px; }
+    .subtitle { color: #6c7086; margin-bottom: 28px; font-size: 14px; }
+    .back { color: #585b70; font-size: 13px; margin-bottom: 20px; text-decoration: none; }
+    .back:hover { color: #cdd6f4; }
+
+    .info { background: #313244; border-radius: 8px; padding: 16px 24px; margin-bottom: 24px; font-size: 14px; color: #a6e3a1; line-height: 2; width: 480px; }
+    .info .hi { color: #f38ba8; font-weight: bold; }
+
+    button.run { background: #a6e3a1; color: #1e1e2e; border: none; padding: 10px 30px; border-radius: 6px; font-family: monospace; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 20px; transition: background 0.15s, transform 0.1s; }
+    button.run:hover { background: #94e2d5; }
+    button.run:active { transform: scale(0.97); }
+
+    #output { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 24px; width: 480px; min-height: 120px; font-size: 18px; }
+    .label { color: #6c7086; font-size: 13px; margin-bottom: 10px; }
+    .splash { color: #f9e2af; font-size: 22px; font-weight: bold; text-align: center; padding: 16px 0; }
+    .flash { animation: flash 0.3s ease; }
+    @keyframes flash { 0%,100%{background:#181825} 50%{background:#313244} }
+
+    details { width: 480px; margin-top: 24px; }
+    summary { color: #585b70; font-size: 13px; cursor: pointer; padding: 6px 0; user-select: none; }
+    summary:hover { color: #cdd6f4; }
+    .ts { background: #181825; border: 1px solid #45475a; border-radius: 8px; padding: 16px 20px; margin-top: 8px; }
+    pre { margin: 0; font-size: 13px; line-height: 1.9; }
+    .kw { color: #cba6f7; } .fn { color: #89b4fa; } .st { color: #a6e3a1; }
+    .nm { color: #fab387; } .va { color: #cdd6f4; } .op { color: #89dceb; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); align-items: center; justify-content: center; z-index: 50; }
+    .modal-overlay.show { display: flex; }
+    .modal { background: #181825; border: 2px solid #89b4fa; border-radius: 10px; padding: 24px; width: 300px; }
+    .modal-prompt { color: #a6e3a1; font-size: 14px; margin-bottom: 12px; line-height: 1.5; }
+    .modal input { width: 100%; background: #313244; border: 1px solid #45475a; color: #cdd6f4; padding: 8px 10px; font-family: monospace; font-size: 14px; border-radius: 4px; outline: none; box-sizing: border-box; }
+    .modal input:focus { border-color: #89b4fa; }
+    .modal-ok { width: 100%; background: #89b4fa; color: #1e1e2e; border: none; padding: 9px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 12px; }
+    .modal-ok:hover { background: #74c7ec; }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← back to index</a>
+  <h1>Program 1</h1>
+  <div class="subtitle">Part 1a — Name Input &amp; Splash</div>
+
+  <div class="info">
+    <span class="hi">Step 1:</span> Click <em>Run Program</em> below<br>
+    <span class="hi">Step 2:</span> Type your name when asked<br>
+    <span class="hi">Result:</span> Your name is splashed on the screen
+  </div>
+
+  <button class="run" onclick="runProgram()">▶  Run Program</button>
+
+  <div id="output">
+    <div class="label">Output will appear here after you run the program...</div>
+  </div>
+
+  <details>
+    <summary>▸ View MakeCode TypeScript</summary>
+    <div class="ts"><pre><span class="kw">let</span> <span class="va">Name</span> <span class="op">=</span> <span class="fn">game.askForString</span>(<span class="st">"Enter your name:"</span>)
+<span class="fn">game.splash</span>(<span class="va">Name</span>)</pre></div>
+  </details>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-prompt" id="modal-prompt"></div>
+      <input type="text" id="modal-input" autocomplete="off" />
+      <button class="modal-ok" id="modal-ok">OK ▶</button>
+    </div>
+  </div>
+
+  <script>
+    function askForString(prompt) {
+      return new Promise(resolve => {
+        const overlay = document.getElementById('modal-overlay');
+        const promptEl = document.getElementById('modal-prompt');
+        const input = document.getElementById('modal-input');
+        const okBtn = document.getElementById('modal-ok');
+        promptEl.textContent = prompt;
+        input.type = 'text';
+        input.value = '';
+        overlay.classList.add('show');
+        setTimeout(() => input.focus(), 50);
+        function finish() {
+          overlay.classList.remove('show');
+          okBtn.removeEventListener('click', finish);
+          input.removeEventListener('keydown', onKey);
+          resolve(input.value.trim() || '(no name entered)');
+        }
+        function onKey(e) { if (e.key === 'Enter') finish(); }
+        okBtn.addEventListener('click', finish);
+        input.addEventListener('keydown', onKey);
+      });
+    }
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    async function runProgram() {
+      // let Name = game.askForString("Enter your name:")
+      const Name = await askForString("Enter your name:");
+
+      // game.splash(Name)
+      const out = document.getElementById('output');
+      out.innerHTML = `
+        <div class="label">game.splash( Name ) →</div>
+        <div class="splash">${esc(Name)}</div>
+      `;
+      out.classList.remove('flash');
+      void out.offsetWidth;
+      out.classList.add('flash');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Widget – Home</title>
+  <style>
+
+    
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:  #0066bb;
+      --grey:  #555555;
+      --white: #ffffff;
+      --black: #000000;
+      --speed: 0.7s;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--black);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    
+
+    
+    @keyframes logoSlideIn {
+      from { opacity: 0; transform: translateX(-50px) scale(0.9); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes taglineSlideIn {
+      from { opacity: 0; transform: translateX(50px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes navDrop {
+      from { opacity: 0; transform: translateY(-22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      0%   { opacity: 0; transform: scale(0.55); }
+      65%  { transform: scale(1.1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    
+    @keyframes heroEyebrowIn {
+      from { opacity: 0; transform: translateY(-24px) letterSpacing(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes heroTitleIn {
+      from { opacity: 0; transform: translateY(44px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes heroSubIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dividerGrow {
+      from { width: 0; opacity: 0; }
+      to   { width: 70px; opacity: 1; }
+    }
+
+    
+    @keyframes flyInLeft {
+      from { opacity: 0; transform: translateX(-70px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes flyInRight {
+      from { opacity: 0; transform: translateX(70px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes flyInUp {
+      from { opacity: 0; transform: translateY(60px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes flyInDown {
+      from { opacity: 0; transform: translateY(-48px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    
+    @keyframes revealUp {
+      from { opacity: 0; transform: translateY(52px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes revealLeft {
+      from { opacity: 0; transform: translateX(-64px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes revealRight {
+      from { opacity: 0; transform: translateX(64px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes staggerUp {
+      from { opacity: 0; transform: translateY(32px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    
+    @keyframes floatBob {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-9px); }
+    }
+    @keyframes underlineDraw {
+      from { width: 0; opacity: 0; }
+      to   { width: 68px; opacity: 1; }
+    }
+    @keyframes shimmerLoad {
+      from { opacity: 0; filter: brightness(0.25) blur(8px); transform: scale(1.07); }
+      to   { opacity: 1; filter: brightness(0.82) blur(0px); transform: scale(1); }
+    }
+    @keyframes cardReveal {
+      0%   { opacity: 0; transform: translateY(28px) scale(0.96); }
+      65%  { transform: translateY(-4px) scale(1.01); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes barWipe {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    
+    .reveal, .reveal-left, .reveal-right { opacity: 0; }
+    .stagger-children > * { opacity: 0; }
+
+    .reveal.visible       { animation: revealUp    var(--speed) ease forwards; }
+    .reveal-left.visible  { animation: revealLeft  var(--speed) ease forwards; }
+    .reveal-right.visible { animation: revealRight var(--speed) ease forwards; }
+
+    .stagger-children.visible > *:nth-child(1)  { animation: staggerUp var(--speed) ease 0.05s  forwards; }
+    .stagger-children.visible > *:nth-child(2)  { animation: staggerUp var(--speed) ease 0.15s  forwards; }
+    .stagger-children.visible > *:nth-child(3)  { animation: staggerUp var(--speed) ease 0.25s  forwards; }
+    .stagger-children.visible > *:nth-child(4)  { animation: staggerUp var(--speed) ease 0.35s  forwards; }
+    .stagger-children.visible > *:nth-child(5)  { animation: staggerUp var(--speed) ease 0.45s  forwards; }
+    .stagger-children.visible > *:nth-child(6)  { animation: staggerUp var(--speed) ease 0.55s  forwards; }
+    .stagger-children.visible > *:nth-child(n+7){ animation: staggerUp var(--speed) ease 0.65s  forwards; }
+
+    
+    header {
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 52px;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      animation: logoSlideIn 1s ease both;
+    }
+    header img.logo {
+      height: 66px;
+      display: block;
+    }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name {
+      color: var(--white);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .brand-tagline {
+      color: rgba(255,255,255,0.75);
+      font-size: 12px;
+      font-style: italic;
+      margin-top: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    .header-cta {
+      animation: taglineSlideIn 1s ease 0.3s both;
+    }
+    .header-cta a {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border: 2px solid rgba(255,255,255,0.5);
+      padding: 9px 20px;
+      border-radius: 2px;
+      transition: background 0.22s, border-color 0.22s;
+    }
+    .header-cta a:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: var(--white);
+    }
+
+    
+    nav {
+      background: var(--grey);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.28);
+    }
+
+    
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 14px 20px;
+      width: 100%;
+      text-align: left;
+    }
+    .menu-toggle .bar {
+      display: block;
+      width: 26px; height: 3px;
+      background: var(--white);
+      margin: 5px 0;
+      border-radius: 2px;
+      transition: transform 0.35s ease, opacity 0.28s ease;
+    }
+    .menu-toggle.open .bar:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .menu-toggle.open .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .menu-toggle.open .bar:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: center;
+    }
+
+    
+    nav ul li { animation: navDrop 0.5s ease both; }
+    nav ul li:nth-child(1) { animation-delay: 0.08s; }
+    nav ul li:nth-child(2) { animation-delay: 0.18s; }
+    nav ul li:nth-child(3) { animation-delay: 0.28s; }
+    nav ul li:nth-child(4) { animation-delay: 0.38s; }
+    nav ul li:nth-child(5) { animation-delay: 0.48s; }
+
+    nav ul li a {
+      display: block;
+      color: var(--white);
+      text-decoration: none;
+      padding: 16px 30px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      position: relative;
+      transition: background 0.22s;
+    }
+    
+    nav ul li a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      height: 3px; width: 0;
+      background: var(--white);
+      transition: width 0.3s ease, left 0.3s ease;
+    }
+    nav ul li a:hover::after,
+    nav ul li a.active::after { width: 100%; left: 0; }
+    nav ul li a:hover,
+    nav ul li a.active { background: var(--blue); }
+
+    
+    .hero {
+      position: relative;
+      height: 530px;
+      overflow: hidden;
+    }
+    .hero-slides { position: absolute; inset: 0; }
+    .hero-slides .slide {
+      position: absolute; inset: 0;
+      opacity: 0;
+      background-size: cover;
+      background-position: center;
+      transition: opacity 1.3s ease-in-out;
+    }
+    .hero-slides .slide.active { opacity: 1; }
+    .hero-slides .slide:nth-child(1) { background-image: url('home.jpg'); }
+    .hero-slides .slide:nth-child(2) { background-image: url('products.jpg'); }
+    .hero-slides .slide:nth-child(3) { background-image: url('facility1.jpg'); }
+    .hero-slides .slide:nth-child(4) { background-image: url('facility2.jpg'); }
+    .hero-slides .slide:nth-child(5) { background-image: url('store.jpg'); }
+    .hero-slides .slide:nth-child(6) { background-image: url('boardroom.jpg'); }
+
+    
+    .hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(0, 102, 187, 0.82) 0%,
+        rgba(0, 102, 187, 0.50) 55%,
+        rgba(0, 0, 0, 0.28) 100%
+      );
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      z-index: 2;
+    }
+
+    .hero-eyebrow {
+      color: rgba(255,255,255,0.80);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+      animation: flyInDown 0.7s ease 0.3s both;
+    }
+    .hero-overlay h1 {
+      color: var(--white);
+      font-size: 68px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 6px;
+      line-height: 1;
+      text-shadow: 0 3px 24px rgba(0,0,0,0.35);
+      animation: heroTitleIn 0.9s ease 0.5s both;
+    }
+    .hero-rule {
+      width: 0; height: 3px;
+      background: var(--white);
+      margin: 22px auto;
+      animation: dividerGrow 0.7s ease 1s forwards;
+    }
+    .hero-overlay p {
+      color: rgba(255,255,255,0.90);
+      font-size: 20px;
+      max-width: 580px;
+      line-height: 1.5;
+      
+      animation: heroSubIn 0.8s ease 0.8s both,
+                 floatBob 5s ease-in-out 2.5s infinite;
+    }
+
+    
+    .hero-btn {
+      position: absolute;
+      top: 50%; z-index: 3;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.28);
+      color: var(--white);
+      border: 2px solid rgba(255,255,255,0.38);
+      font-size: 28px;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.22s, border-color 0.22s, transform 0.22s;
+    }
+    .hero-btn:hover {
+      background: var(--blue);
+      border-color: var(--blue);
+      transform: translateY(-50%) scale(1.12);
+    }
+    .hero-btn.prev { left: 24px;  animation: flyInLeft  0.7s ease 0.7s both; }
+    .hero-btn.next { right: 24px; animation: flyInRight 0.7s ease 0.7s both; }
+
+    .hero-dots {
+      position: absolute;
+      bottom: 22px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: flex; gap: 10px;
+      animation: flyInUp 0.6s ease 1s both;
+    }
+    .hero-dots .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      border: 2px solid rgba(255,255,255,0.55);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .hero-dots .dot.active { background: var(--white); transform: scale(1.35); }
+    .hero-dots .dot:hover  { background: var(--white); }
+
+    
+    .section { padding: 82px 52px; }
+
+    .section-title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    
+    .section-title::after {
+      content: '';
+      display: block;
+      height: 4px;
+      width: 0;
+      opacity: 0;
+      border-radius: 2px;
+      margin: 14px auto 0;
+      background: currentColor;
+    }
+    .section-title.visible::after {
+      animation: underlineDraw 0.7s ease 0.35s forwards;
+    }
+
+    .section-body {
+      max-width: 820px;
+      margin: 30px auto 0;
+      font-size: 16px;
+      line-height: 1.85;
+      text-align: center;
+    }
+
+    
+
+    
+    .bg-blue {
+      background: var(--blue);
+      color: var(--white);
+    }
+    .bg-blue .section-title { color: var(--white); }
+    .bg-blue .section-body  { color: rgba(255,255,255,0.90); }
+
+    
+    .bg-white {
+      background: var(--white);
+      color: var(--black);
+    }
+    .bg-white .section-title { color: var(--blue); }
+    .bg-white .section-body  { color: var(--grey); }
+
+    
+    .bg-black {
+      background: var(--black);
+      color: var(--white);
+    }
+    .bg-black .section-title { color: var(--white); }
+    .bg-black .section-body  { color: rgba(255,255,255,0.82); }
+
+    
+    .bg-grey {
+      background: var(--grey);
+      color: var(--white);
+    }
+    .bg-grey .section-title { color: var(--white); }
+    .bg-grey .section-body  { color: rgba(255,255,255,0.85); }
+
+    
+    .image-strip {
+      display: flex;
+      height: 290px;
+      overflow: hidden;
+    }
+    .image-strip img {
+      flex: 1;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.82);
+      transition: filter 0.4s ease, transform 0.5s ease;
+      animation: shimmerLoad 1.4s ease both;
+    }
+    .image-strip img:nth-child(1) { animation-delay: 0.10s; }
+    .image-strip img:nth-child(2) { animation-delay: 0.35s; }
+    .image-strip img:nth-child(3) { animation-delay: 0.60s; }
+    .image-strip img:hover {
+      filter: brightness(1.08);
+      transform: scale(1.05);
+      z-index: 1;
+    }
+
+    
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+      max-width: 980px;
+      margin: 40px auto 0;
+    }
+    .value-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px 20px;
+      border-left: 4px solid var(--blue);
+      background: var(--white);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      transition: transform 0.28s ease, box-shadow 0.28s ease;
+    }
+    .value-card:hover {
+      transform: translateX(5px);
+      box-shadow: 0 6px 24px rgba(0,102,187,0.16);
+    }
+    .value-num {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--blue);
+      opacity: 0.28;
+      line-height: 1;
+      min-width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .value-content strong {
+      display: block;
+      font-size: 13px;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 5px;
+    }
+    .value-content span {
+      font-size: 14px;
+      color: var(--grey);
+      line-height: 1.65;
+    }
+
+    
+    .dept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 2px;
+      max-width: 1120px;
+      margin: 46px auto 0;
+    }
+    .dept-card {
+      padding: 34px 28px;
+      background: rgba(255,255,255,0.06);
+      border-top: 3px solid rgba(255,255,255,0.18);
+      position: relative;
+      overflow: hidden;
+      transition: background 0.28s;
+      cursor: default;
+    }
+    
+    .dept-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--white);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s ease;
+    }
+    .dept-card:hover::before  { transform: scaleX(1); }
+    .dept-card:hover          { background: rgba(255,255,255,0.12); }
+    .dept-card h3 {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--white);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+    .dept-card p {
+      font-size: 14px;
+      line-height: 1.72;
+      color: rgba(255,255,255,0.78);
+    }
+
+    
+    .purpose-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 52px;
+      max-width: 1020px;
+      margin: 38px auto 0;
+    }
+    .purpose-cols p {
+      font-size: 16px;
+      line-height: 1.85;
+      color: var(--grey);
+      text-align: left;
+    }
+
+    
+    footer {
+      background: var(--black);
+      padding: 40px 52px;
+    }
+    .footer-inner {
+      max-width: 1140px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .footer-brand img { height: 42px; opacity: 0.7; }
+    .footer-brand-name {
+      color: var(--white);
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .footer-copy {
+      color: var(--grey);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 20px;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--blue); }
+
+    
+    #settings-toggle {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      z-index: 1000;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--white);
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(0,102,187,0.55);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.4s ease, background 0.2s;
+      animation: popIn 0.6s ease 1.6s both;
+    }
+    #settings-toggle:hover { background: #004f99; }
+    #settings-toggle.open  { transform: rotate(60deg); }
+
+    #settings-panel {
+      position: fixed;
+      bottom: 90px; right: 28px;
+      z-index: 999;
+      width: 292px;
+      background: var(--white);
+      border: 2px solid var(--blue);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      padding: 22px;
+      transform: scale(0.85) translateY(20px);
+      transform-origin: bottom right;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    #settings-panel.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+    #settings-panel h3 {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border-bottom: 2px solid var(--blue);
+      padding-bottom: 10px;
+      margin-bottom: 18px;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .setting-row label { font-size: 13px; color: var(--grey); font-weight: 700; }
+    .setting-row select {
+      border: 1px solid var(--blue);
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 13px;
+      color: var(--grey);
+      cursor: pointer;
+      accent-color: var(--blue);
+    }
+    .toggle-sw { position: relative; width: 42px; height: 22px; }
+    .toggle-sw input { opacity: 0; width: 0; height: 0; }
+    .toggle-sw .sl {
+      position: absolute; inset: 0;
+      background: #ccc;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: background 0.28s;
+    }
+    .toggle-sw .sl::before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--white);
+      top: 3px; left: 3px;
+      transition: transform 0.28s;
+    }
+    .toggle-sw input:checked + .sl            { background: var(--blue); }
+    .toggle-sw input:checked + .sl::before   { transform: translateX(20px); }
+    .setting-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; }
+
+    
+    body.no-anim .reveal,
+    body.no-anim .reveal-left,
+    body.no-anim .reveal-right      { opacity: 1; animation: none; }
+    body.no-anim .stagger-children > * { opacity: 1; animation: none; }
+    body.no-anim .image-strip img   { animation: none; opacity: 1; filter: brightness(0.82); }
+    body.no-anim #settings-toggle   { animation: none; }
+    body.no-anim .hero-overlay p    { animation: heroSubIn 0.8s ease 0.8s both; }
+    body.no-anim .section-title.visible::after { animation: none; width: 68px; opacity: 1; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    
+    @media (max-width: 1024px) {
+      header           { padding: 16px 28px; }
+      .section         { padding: 64px 28px; }
+      .purpose-cols    { gap: 36px; }
+      footer           { padding: 32px 28px; }
+    }
+
+    
+    @media (max-width: 768px) {
+
+      
+      header           { padding: 12px 20px; flex-wrap: wrap; gap: 10px; }
+      header img.logo  { height: 48px; }
+      .brand-name      { font-size: 18px; letter-spacing: 1.5px; }
+      .brand-tagline   { font-size: 11px; }
+      .header-cta      { display: none; }          
+
+      
+      .menu-toggle     { display: block; }
+      nav ul           { display: none; flex-direction: column; width: 100%; }
+      nav ul.open      { display: flex; animation: flyInDown 0.35s ease both; }
+
+      
+      nav ul li,
+      nav ul li:nth-child(1), nav ul li:nth-child(2),
+      nav ul li:nth-child(3), nav ul li:nth-child(4),
+      nav ul li:nth-child(5) { animation: none; opacity: 1; }
+
+      nav ul li a {
+        padding: 14px 20px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(255,255,255,0.10);
+      }
+      nav ul li:last-child a { border-bottom: none; }
+
+      
+      .hero            { height: 300px; }
+      .hero-overlay h1 { font-size: 36px; letter-spacing: 2px; }
+      .hero-overlay p  { font-size: 15px; animation: heroSubIn 0.8s ease 0.8s both; }
+      .hero-eyebrow    { font-size: 11px; letter-spacing: 3px; }
+      .hero-btn        { width: 42px; height: 42px; font-size: 22px; }
+      .hero-btn.prev   { left: 10px; }
+      .hero-btn.next   { right: 10px; }
+
+      
+      .section         { padding: 46px 20px; }
+      .section-title   { font-size: 26px; letter-spacing: 1.5px; }
+      .section-body    { font-size: 15px; margin-top: 22px; }
+
+      
+      .values-grid     { grid-template-columns: 1fr; gap: 14px; }
+
+      
+      .dept-grid       { grid-template-columns: 1fr; gap: 1px; }
+
+      
+      .purpose-cols    { grid-template-columns: 1fr; gap: 22px; }
+      .purpose-cols p  { text-align: center; }
+
+      
+      .image-strip     { height: 200px; }
+      .image-strip img { flex: none; width: 100%; }
+      .image-strip img:not(:first-child) { display: none; }
+
+      
+      footer           { padding: 24px 20px; }
+      .footer-inner    { flex-direction: column; align-items: flex-start; gap: 18px; }
+      .footer-links    { gap: 6px 16px; }
+
+      
+      #settings-toggle { bottom: 16px; right: 16px; }
+      #settings-panel  { right: 16px; bottom: 72px; width: calc(100vw - 32px); max-width: 300px; }
+    }
+
+    
+    @media (max-width: 480px) {
+      header img.logo  { height: 40px; }
+      .brand-name      { font-size: 16px; }
+      .hero            { height: 240px; }
+      .hero-overlay h1 { font-size: 26px; letter-spacing: 1px; }
+      .hero-overlay p  { font-size: 13px; }
+      .section-title   { font-size: 22px; letter-spacing: 1px; }
+      .section-body    { font-size: 14px; }
+    }
+
+  </style>
+</head>
+<body>
+
+  
+  <header>
+    <div class="header-brand">
+      <img src="logo_png.png" alt="Global Widget" class="logo" />
+      <div class="brand-text">
+        <span class="brand-name">Global Widget</span>
+        <span class="brand-tagline">Natural Health &amp; Wellness Products</span>
+      </div>
+    </div>
+    <div class="header-cta">
+      <a href="contact.html">Contact Us</a>
+    </div>
+  </header>
+
+  
+  <nav>
+    <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </button>
+    <ul id="nav-menu">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="employment.html">Employment</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="careers.html">Careers</a></li>
+      <li><a href="contact.html">Contact Us</a></li>
+    </ul>
+  </nav>
+
+  
+  <div class="hero">
+    <div class="hero-slides">
+      <div class="slide active"></div>
+      <div class="slide"></div>
+      <div class="slide"></div>
+      <div class="slide"></div>
+      <div class="slide"></div>
+      <div class="slide"></div>
+    </div>
+    <div class="hero-overlay">
+      <p class="hero-eyebrow">Natural Health &amp; Wellness</p>
+      <h1>Global Widget</h1>
+      <div class="hero-rule"></div>
+      <p>Delivering the goodness of nature to a global community</p>
+    </div>
+    <button class="hero-btn prev" aria-label="Previous slide">&#8249;</button>
+    <button class="hero-btn next" aria-label="Next slide">&#8250;</button>
+    <div class="hero-dots">
+      <button class="dot active" aria-label="Slide 1"></button>
+      <button class="dot"        aria-label="Slide 2"></button>
+      <button class="dot"        aria-label="Slide 3"></button>
+      <button class="dot"        aria-label="Slide 4"></button>
+      <button class="dot"        aria-label="Slide 5"></button>
+      <button class="dot"        aria-label="Slide 6"></button>
+    </div>
+  </div>
+
+  
+  <section class="section bg-blue">
+    <h2 class="section-title reveal">What We Do</h2>
+    <p class="section-body reveal">
+      At Global Widget, we design, develop and distribute natural health and wellness products. Our process begins
+      with market research and product formulation to develop premium products that make people feel their best.
+      We focus on the healing properties found in nature, which is why we use natural, organic ingredients grown
+      locally in the United States. We then manufacture our products in our in-house production facility – paying
+      close attention to packaging, design and usability. From there, our products are shipped to distributors and
+      stores around the world, and we also ship directly to consumers. With professionals in design, marketing and
+      sales, we build upon our network to help our products reach as many stores, doctor's offices and doorsteps
+      as possible.
+    </p>
+  </section>
+
+  
+  <div class="image-strip">
+    <img src="products.jpg"  alt="Our Products" />
+    <img src="facility1.jpg" alt="Our Facility" />
+    <img src="store.jpg"     alt="Retail Stores" />
+  </div>
+
+  
+  <section class="section bg-white">
+    <h2 class="section-title reveal">Who We Are</h2>
+    <p class="section-body reveal">
+      We're creative and passionate professionals on a mission – to deliver top-notch natural health products to
+      a global community. Our diverse team includes experts in all areas of product manufacturing and distribution,
+      including formulation, shipping, inventory, marketing, web development and more. We're one of the biggest
+      players in our segment of the health market, and we are constantly learning, evolving and improving our
+      business efforts and personal talents. We set strict quality and purity standards that are unsurpassed by our
+      competitors – all to provide the very best products for maximum health benefits. We're a devoted team with
+      passion for our products, and respect for one another.
+    </p>
+  </section>
+
+  
+  <section class="section bg-black">
+    <h2 class="section-title reveal">Our Mission</h2>
+    <p class="section-body reveal">
+      At Global Widget, it's our mission to promote healthier lifestyles by delivering natural products to a global
+      community. We strive to lead our industry in design, development and distribution through in-house expertise
+      and innovation.
+    </p>
+  </section>
+
+  
+  <section class="section bg-white">
+    <h2 class="section-title reveal">Our Core Values</h2>
+    <div class="values-grid stagger-children">
+
+      <div class="value-card">
+        <span class="value-num">01</span>
+        <div class="value-content">
+          <strong>Quality</strong>
+          <span>We make a product we are proud of and strive for excellence in everything we do.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">02</span>
+        <div class="value-content">
+          <strong>Efficiency</strong>
+          <span>We maximize our resources through time management, innovation and action.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">03</span>
+        <div class="value-content">
+          <strong>Continuous Improvement</strong>
+          <span>We strive to be better every day. We are not satisfied with the status quo.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">04</span>
+        <div class="value-content">
+          <strong>Positivity</strong>
+          <span>We keep our attitudes in check. We are solution oriented, not problem focused.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">05</span>
+        <div class="value-content">
+          <strong>Integrity</strong>
+          <span>Genuine honesty and transparency provide the foundation for our efforts.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">06</span>
+        <div class="value-content">
+          <strong>Team</strong>
+          <span>We work together as one team and achieve our goals through collaboration.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">07</span>
+        <div class="value-content">
+          <strong>Accountability</strong>
+          <span>We hold ourselves to high standards and take ownership of our work.</span>
+        </div>
+      </div>
+
+      <div class="value-card">
+        <span class="value-num">08</span>
+        <div class="value-content">
+          <strong>Respect</strong>
+          <span>We treat each other with respect, and rely upon the different thinking that diversity brings.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  
+  <div class="image-strip">
+    <img src="facility2.jpg" alt="Manufacturing Facility" />
+    <img src="boardroom.jpg" alt="Boardroom" />
+  </div>
+
+  
+  <section class="section bg-grey">
+    <h2 class="section-title reveal">Our Departments</h2>
+    <div class="dept-grid stagger-children">
+
+      <div class="dept-card">
+        <h3>Manufacturing</h3>
+        <p>As Global Widget's largest team, manufacturing is the heart of our business. All products are
+        manufactured in-house with a commitment to quality. Our master formulators craft each product
+        for maximum health and wellness benefits.</p>
+      </div>
+
+      <div class="dept-card">
+        <h3>Sales</h3>
+        <p>Our sales professionals connect our premium wellness products with distributors, stores and
+        local businesses by building lasting relationships. They continue to build upon a robust
+        distribution network across the country through genuine B2B marketing and selling.</p>
+      </div>
+
+      <div class="dept-card">
+        <h3>HR &amp; Operations</h3>
+        <p>With our mission statement and core values as our guiding principles, our HR &amp; Operations
+        team is committed to employee engagement and retention. We invest in our employees' health,
+        talent, financial security, and career development.</p>
+      </div>
+
+      <div class="dept-card">
+        <h3>eCommerce</h3>
+        <p>One of our fastest-growing departments, our Global eCommerce department includes website
+        development, graphic design, social media, content marketing, communications, affiliate
+        marketing, customer service and more.</p>
+      </div>
+
+      <div class="dept-card">
+        <h3>Shipping &amp; Inventory</h3>
+        <p>We ship products all over the world, and our shipping team understands that speed and
+        efficiency are top priorities. Our inventory experts keep our warehouses stocked and
+        organized for timely fulfillment.</p>
+      </div>
+
+      <div class="dept-card">
+        <h3>Compliance &amp; Legal</h3>
+        <p>When operating in the health and wellness industry, it's important to stay abreast of current
+        policies and best practices. Our legal and compliance team provides valuable support in
+        helping us establish policies, contracts, processes and more.</p>
+      </div>
+
+    </div>
+  </section>
+
+  
+  <section class="section bg-white">
+    <h2 class="section-title reveal">Our Purpose</h2>
+    <div class="purpose-cols">
+      <p class="reveal-left">
+        We deliver the goodness found in nature to a global audience through our diverse line of health
+        and wellness products. Every day, we see the positive impact our products have on the health of
+        hundreds of thousands of individuals. We leave work every day with the ability to say,
+        "I made a difference today."
+      </p>
+      <p class="reveal-right">
+        As a manufacturer of products derived from nature, we strive to achieve the most sustainable
+        methods of sourcing and production. We source our natural materials from organic farms in the
+        United States.
+      </p>
+    </div>
+  </section>
+
+  
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="logo_png.png" alt="Global Widget" />
+        <div>
+          <div class="footer-brand-name">Global Widget</div>
+          <div class="footer-copy">&copy; 2026 All Rights Reserved</div>
+        </div>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="index.html">Home</a>
+        <a href="employment.html">Employment</a>
+        <a href="news.html">News</a>
+        <a href="careers.html">Careers</a>
+        <a href="contact.html">Contact Us</a>
+      </nav>
+    </div>
+  </footer>
+
+  
+  <button id="settings-toggle" aria-label="Open Settings" aria-expanded="false">&#9881;</button>
+
+  
+  <div id="settings-panel" role="dialog" aria-label="Page Settings">
+    <h3>&#9881; Page Settings</h3>
+
+    <div class="setting-row">
+      <label for="slide-speed">Slide Interval</label>
+      <select id="slide-speed">
+        <option value="3000">Fast (3s)</option>
+        <option value="5000" selected>Normal (5s)</option>
+        <option value="8000">Slow (8s)</option>
+        <option value="0">Paused</option>
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <label for="auto-play">Auto-Play Slides</label>
+      <label class="toggle-sw">
+        <input type="checkbox" id="auto-play" checked />
+        <span class="sl"></span>
+      </label>
+    </div>
+
+    <div class="setting-row">
+      <label for="anim-speed">Animation Speed</label>
+      <select id="anim-speed">
+        <option value="0.4s">Fast</option>
+        <option value="0.7s" selected>Normal</option>
+        <option value="1.2s">Slow</option>
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <label for="no-anim">Disable Animations</label>
+      <label class="toggle-sw">
+        <input type="checkbox" id="no-anim" />
+        <span class="sl"></span>
+      </label>
+    </div>
+
+    <p class="setting-note">Settings reset on page reload.</p>
+  </div>
+
+  <script>
+    
+    const slides = document.querySelectorAll('.hero-slides .slide');
+    const dots   = document.querySelectorAll('.hero-dots .dot');
+    let current = 0, timer = null, interval = 5000, autoPlay = true;
+
+    function goTo(n) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = (n + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+    }
+    function startTimer() {
+      clearInterval(timer);
+      if (autoPlay && interval > 0) timer = setInterval(() => goTo(current + 1), interval);
+    }
+    document.querySelector('.hero-btn.next').addEventListener('click', () => { goTo(current + 1); startTimer(); });
+    document.querySelector('.hero-btn.prev').addEventListener('click', () => { goTo(current - 1); startTimer(); });
+    dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); startTimer(); }));
+    startTimer();
+
+    
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .section-title, .stagger-children')
+      .forEach(el => observer.observe(el));
+
+    
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navMenu    = document.getElementById('nav-menu');
+
+    menuToggle.addEventListener('click', () => {
+      const open = navMenu.classList.toggle('open');
+      menuToggle.classList.toggle('open', open);
+      menuToggle.setAttribute('aria-expanded', open);
+    });
+    navMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      navMenu.classList.remove('open');
+      menuToggle.classList.remove('open');
+      menuToggle.setAttribute('aria-expanded', false);
+    }));
+
+    
+    const toggleBtn  = document.getElementById('settings-toggle');
+    const panel      = document.getElementById('settings-panel');
+    const slideSpeed = document.getElementById('slide-speed');
+    const autoPlayEl = document.getElementById('auto-play');
+    const animSpeed  = document.getElementById('anim-speed');
+    const noAnimEl   = document.getElementById('no-anim');
+
+    toggleBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = panel.classList.toggle('open');
+      toggleBtn.classList.toggle('open', open);
+      toggleBtn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', e => {
+      if (!panel.contains(e.target) && e.target !== toggleBtn) {
+        panel.classList.remove('open');
+        toggleBtn.classList.remove('open');
+        toggleBtn.setAttribute('aria-expanded', false);
+      }
+    });
+    slideSpeed.addEventListener('change', () => { interval = +slideSpeed.value; startTimer(); });
+    autoPlayEl.addEventListener('change', () => { autoPlay = autoPlayEl.checked; startTimer(); });
+    animSpeed.addEventListener('change',  () => { document.documentElement.style.setProperty('--speed', animSpeed.value); });
+    noAnimEl.addEventListener('change',   () => { document.body.classList.toggle('no-anim', noAnimEl.checked); });
+  </script>
+
+</body>
+</html>

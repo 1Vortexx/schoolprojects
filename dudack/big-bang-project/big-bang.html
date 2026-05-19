@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosmic Detective: The Story of Our Universe</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #020409; --surface: #070b18; --border: #111829; --text: #dde3f5; --muted: #55647f; --radius: 12px; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.7; overflow-x: hidden; }
+
+    #scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(to right,#ff5722,#c084fc,#5b8dee); z-index: 9999; width: 0%; transition: width .1s; }
+    #starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .nebula { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+    .nb1 { width:700px;height:700px;top:-200px;left:-200px; background:radial-gradient(circle,#1a0535 0%,transparent 70%); opacity:.5; animation: nd 28s ease-in-out infinite alternate; }
+    .nb2 { width:500px;height:500px;top:40%;right:-150px; background:radial-gradient(circle,#05143a 0%,transparent 70%); opacity:.4; animation: nd 22s ease-in-out infinite alternate-reverse; }
+    .nb3 { width:800px;height:800px;bottom:-300px;left:15%; background:radial-gradient(circle,#12042a 0%,transparent 70%); opacity:.4; animation: nd 35s ease-in-out infinite alternate; }
+    @keyframes nd { from{transform:translate(0,0) scale(1)} to{transform:translate(50px,30px) scale(1.12)} }
+
+    /* NAV */
+    .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; transition: background .3s, border-color .3s; border-bottom: 1px solid transparent; }
+    .top-nav.scrolled { background: rgba(2,4,9,.92); backdrop-filter: blur(16px); border-color: #111829; }
+    .nav-brand { display: flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; transition: color .2s; }
+    .nav-brand:hover { color: var(--text); }
+    .nav-brand i { color: #5b8dee; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { padding: 6px 14px; border-radius: 100px; color: var(--muted); text-decoration: none; font-size: .78rem; transition: all .2s; border: 1px solid transparent; }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav-link.active { color: var(--text); background: rgba(255,255,255,.06); border-color: #1a2548; }
+
+    .wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease,transform .7s ease; }
+    .reveal.in { opacity:1; transform:none; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
+
+    /* HERO */
+    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 100px 24px 60px; position: relative; z-index: 1; }
+    .hero-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 18px; border: 1px solid #1b2540; border-radius: 100px; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 30px; animation: fadeUp .8s ease both; }
+    .hero-pill i { color: #5b8dee; }
+    .hero h1 { font-size: clamp(2.4rem,7vw,4.5rem); font-weight: 900; line-height: 1.08; letter-spacing: -.035em; margin-bottom: 26px; animation: fadeUp .9s .1s ease both; }
+    .grad-text { background: linear-gradient(135deg,#7eb3ff 0%,#c084fc 50%,#fb923c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; background-size: 200%; animation: gradShift 6s ease infinite alternate; }
+    @keyframes gradShift { from{background-position:0% center} to{background-position:100% center} }
+    .hero-sub { max-width: 560px; color: var(--muted); font-size: 1.05rem; margin-bottom: 52px; animation: fadeUp .9s .22s ease both; line-height: 1.75; }
+    .hero-stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; animation: fadeUp .9s .34s ease both; }
+    .stat { text-align: center; }
+    .stat-val { font-size: 1.8rem; font-weight: 900; background: linear-gradient(135deg,#7eb3ff,#c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-lbl { font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+    .scroll-hint { margin-top: 48px; color: var(--muted); font-size: .7rem; letter-spacing: .15em; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px; animation: fadeUp 1s .8s ease both; }
+    .scroll-hint i { animation: bob 2s ease-in-out infinite; }
+    @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+
+    /* HUB SECTION */
+    .hub-section { padding: 40px 0 120px; position: relative; z-index: 1; }
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 20px; }
+    .hub-card {
+      display: flex; flex-direction: column;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+      padding: 32px; text-decoration: none; color: var(--text);
+      position: relative; overflow: hidden;
+      transition: transform .3s cubic-bezier(.4,0,.2,1), border-color .3s, box-shadow .35s;
+    }
+    .hub-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: linear-gradient(to right, var(--c1,#5b8dee), var(--c2,#c084fc)); }
+    .hub-card::after { content:''; position:absolute; inset:0; background: radial-gradient(circle at 50% -5%, var(--c1,#5b8dee) 0%,transparent 60%); opacity:0; transition:opacity .4s; pointer-events:none; }
+    .hub-card:hover { transform: translateY(-7px); border-color: var(--c1,#5b8dee); box-shadow: 0 24px 64px -12px rgba(0,0,0,.75); }
+    .hub-card:hover::after { opacity:.09; }
+    .hub-eyebrow { font-size: .64rem; letter-spacing: .22em; text-transform: uppercase; color: var(--c1,#5b8dee); margin-bottom: 18px; font-weight: 700; position: relative; z-index: 1; }
+    .hub-icon { font-size: 2rem; color: var(--c1,#5b8dee); margin-bottom: 16px; position: relative; z-index: 1; transition: transform .3s; display: block; }
+    .hub-card:hover .hub-icon { transform: scale(1.12) rotate(6deg); }
+    .hub-card h2 { font-size: 1.3rem; font-weight: 800; letter-spacing: -.025em; margin-bottom: 10px; position: relative; z-index: 1; }
+    .hub-card > p { font-size: .875rem; color: var(--muted); line-height: 1.72; flex: 1; position: relative; z-index: 1; margin-bottom: 22px; }
+    .hub-items { list-style: none; margin-bottom: 26px; position: relative; z-index: 1; }
+    .hub-items li { font-size: .8rem; color: var(--muted); padding: 6px 0; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .hub-items li:last-child { border-bottom: none; }
+    .hub-items li i { color: var(--c1,#5b8dee); font-size: .68rem; flex-shrink: 0; width: 14px; text-align: center; }
+    .hub-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: 1px solid var(--c1,#5b8dee); border-radius: 100px; color: var(--c1,#5b8dee); font-size: .8rem; font-weight: 600; background: rgba(255,255,255,.02); transition: all .2s; position: relative; z-index: 1; align-self: flex-start; }
+    .hub-card:hover .hub-cta { background: var(--c1,#5b8dee); color: #000; }
+
+    footer { border-top: 1px solid var(--border); padding: 36px 24px; text-align: center; color: var(--muted); font-size: .8rem; position: relative; z-index: 1; }
+    footer i { color: #5b8dee; margin: 0 4px; }
+
+    @media(max-width:600px){
+      .top-nav { padding: 12px 18px; }
+      .nav-links { gap: 2px; }
+      .nav-link { padding: 5px 10px; font-size: .72rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="scroll-progress"></div>
+<canvas id="starfield"></canvas>
+<div class="nb1 nebula"></div><div class="nb2 nebula"></div><div class="nb3 nebula"></div>
+
+<nav class="top-nav" id="top-nav">
+  <a href="big-bang.html" class="nav-brand"><i class="fas fa-meteor"></i> Cosmic Detective</a>
+  <div class="nav-links">
+    <a href="evidence.html" class="nav-link">Evidence</a>
+    <a href="timeline.html" class="nav-link">Timeline</a>
+    <a href="narrative.html" class="nav-link">Narrative</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-pill"><i class="fas fa-meteor"></i> cosmology · school project</div>
+  <h1>Cosmic Detective:<br><span class="grad-text">The Story of Our Universe</span></h1>
+  <p class="hero-sub">13.8 billion years ago, something happened that we still can't fully explain. But we can trace almost everything that came after. And honestly, the evidence is kind of wild.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-val" data-count="13.8" data-suffix="B yrs">0</div><div class="stat-lbl">Age of Universe</div></div>
+    <div class="stat"><div class="stat-val" data-count="2" data-suffix="T galaxies">0</div><div class="stat-lbl">Known Galaxies</div></div>
+    <div class="stat"><div class="stat-val" data-count="2.725" data-suffix="K">0</div><div class="stat-lbl">CMB Temperature</div></div>
+    <div class="stat"><div class="stat-val" data-count="75" data-suffix="% H">0</div><div class="stat-lbl">Primordial Hydrogen</div></div>
+  </div>
+  <div class="scroll-hint"><span>Pick a section to explore</span><i class="fas fa-chevron-down"></i></div>
+</section>
+
+<!-- HUB CARDS -->
+<section class="hub-section">
+  <div class="wrap">
+    <div class="hub-grid">
+
+      <a href="evidence.html" class="hub-card reveal" style="--c1:#5b8dee;--c2:#93c5fd">
+        <div class="hub-eyebrow">Part I</div>
+        <i class="fas fa-flask hub-icon"></i>
+        <h2>The Evidence Log</h2>
+        <p>Four concepts that together make a solid case for how the universe started. Get these down and the rest clicks into place a lot faster.</p>
+        <ul class="hub-items">
+          <li><i class="fas fa-arrows-left-right"></i> Redshift and Hubble's Law</li>
+          <li><i class="fas fa-satellite-dish"></i> Cosmic Microwave Background</li>
+          <li><i class="fas fa-atom"></i> Element Abundance</li>
+          <li><i class="fas fa-bolt-lightning"></i> E = mc² with live explosion demo</li>
+        </ul>
+        <span class="hub-cta">Explore <i class="fas fa-arrow-right"></i></span>
+      </a>
+
+      <a href="timeline.html" class="hub-card reveal" style="--c1:#c084fc;--c2:#818cf8;transition-delay:.12s">
+        <div class="hub-eyebrow">Part II</div>
+        <i class="fas fa-clock-rotate-left hub-icon"></i>
+        <h2>The Cosmic Storyboard</h2>
+        <p>An interactive timeline from the first second to right now. Seven eras, each one with questions and answers you can click through.</p>
+        <ul class="hub-items">
+          <li><i class="fas fa-fire"></i> The Primordial Fireball</li>
+          <li><i class="fas fa-atom"></i> First Elements Forged</li>
+          <li><i class="fas fa-sun"></i> The Moment Light Was Set Free</li>
+          <li><i class="fas fa-star"></i> First Stars and beyond</li>
+        </ul>
+        <span class="hub-cta">Explore <i class="fas fa-arrow-right"></i></span>
+      </a>
+
+      <a href="narrative.html" class="hub-card reveal" style="--c1:#fb923c;--c2:#fbbf24;transition-delay:.24s">
+        <div class="hub-eyebrow">Part III</div>
+        <i class="fas fa-book-open hub-icon"></i>
+        <h2>The Narrative</h2>
+        <p>The whole story from start to finish, written like an actual story instead of a bulleted list of facts. Seven chapters.</p>
+        <ul class="hub-items">
+          <li><i class="fas fa-circle"></i> Before Everything</li>
+          <li><i class="fas fa-fire"></i> The First Second</li>
+          <li><i class="fas fa-atom"></i> Three Minutes That Wrote the Recipe</li>
+          <li><i class="fas fa-earth-americas"></i> Right Now</li>
+        </ul>
+        <span class="hub-cta">Explore <i class="fas fa-arrow-right"></i></span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<footer><i class="fas fa-star"></i> Cosmic Detective: The Story of Our Universe · Big Bang Theory Project <i class="fas fa-star"></i></footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const doc=document.documentElement;
+  document.getElementById('scroll-progress').style.width=((doc.scrollTop/(doc.scrollHeight-doc.clientHeight))*100)+'%';
+  document.getElementById('top-nav').classList.toggle('scrolled',window.scrollY>30);
+});
+
+function animCount(el){
+  const target=parseFloat(el.dataset.count),suffix=el.dataset.suffix||'';
+  const dec=(target%1!==0)?3:0,dur=1800;let start;
+  const step=ts=>{if(!start)start=ts;const p=Math.min((ts-start)/dur,1),e=1-Math.pow(1-p,3);
+    el.textContent=(target*e).toFixed(dec)+suffix;if(p<1)requestAnimationFrame(step);else el.textContent=target.toFixed(dec)+suffix;};
+  requestAnimationFrame(step);
+}
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+const co=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){animCount(e.target);co.unobserve(e.target);}});},{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el=>co.observe(el));
+
+const sfCanvas=document.getElementById('starfield'),sfCtx=sfCanvas.getContext('2d');
+let W,H,stars=[],shooters=[],cursorTrail=[],tick=0,mouse={x:-999,y:-999};
+function resize(){W=sfCanvas.width=window.innerWidth;H=sfCanvas.height=window.innerHeight;}
+function mkStar(){const depth=Math.random()*3+0.5,speed=depth*(Math.random()*0.12+0.03),angle=Math.random()*Math.PI*2;return{x:Math.random()*W,y:Math.random()*H,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r:Math.min(depth*0.45,1.8),baseAlpha:Math.random()*0.55+0.25,twinkle:Math.random()*0.03+0.005,phase:Math.random()*Math.PI*2,depth,hue:Math.random()>.85?38:(Math.random()>.7?210:0)};}
+function initStars(){stars=Array.from({length:300},mkStar);}
+function spawnShooter(){const top=Math.random()>.4,ang=(Math.random()*35+15)*Math.PI/180,spd=Math.random()*10+7;shooters.push({x:top?Math.random()*W:-10,y:top?-10:Math.random()*H*0.6,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,trail:[],maxTrail:Math.floor(Math.random()*20+14),width:Math.random()*1.2+0.6,alive:true});}
+let nextShooter=240;
+function sfUpdate(){tick++;const mx=(mouse.x/W-0.5)*14,my=(mouse.y/H-0.5)*14;stars.forEach(s=>{s.x+=s.vx;s.y+=s.vy;const px=s.x+mx/(s.depth*1.5),py=s.y+my/(s.depth*1.5);s._px=((px%W)+W)%W;s._py=((py%H)+H)%H;s.alpha=s.baseAlpha*(0.55+0.45*Math.sin(tick*s.twinkle+s.phase));});if(tick>=nextShooter){spawnShooter();nextShooter=tick+Math.floor(Math.random()*320+180);}shooters.forEach(sh=>{sh.trail.push({x:sh.x,y:sh.y});if(sh.trail.length>sh.maxTrail)sh.trail.shift();sh.x+=sh.vx;sh.y+=sh.vy;if(sh.x>W+80||sh.y>H+80)sh.alive=false;});shooters=shooters.filter(s=>s.alive);cursorTrail.forEach(p=>{p.alpha-=p.decay;p.x+=p.vx;p.y+=p.vy;});cursorTrail=cursorTrail.filter(p=>p.alpha>0);}
+function sfDraw(){sfCtx.clearRect(0,0,W,H);stars.forEach(s=>{sfCtx.beginPath();sfCtx.arc(s._px??s.x,s._py??s.y,s.r,0,Math.PI*2);const col=s.hue===0?`rgba(220,230,255,${s.alpha})`:s.hue===38?`rgba(255,240,200,${s.alpha})`:`rgba(170,200,255,${s.alpha})`;sfCtx.fillStyle=col;sfCtx.fill();if(s.r>1.2){sfCtx.beginPath();sfCtx.arc(s._px??s.x,s._py??s.y,s.r*2.5,0,Math.PI*2);sfCtx.fillStyle=col.replace(s.alpha.toFixed(2),(s.alpha*0.18).toFixed(2));sfCtx.fill();}});shooters.forEach(sh=>{if(sh.trail.length<2)return;const tail=sh.trail[0];const g=sfCtx.createLinearGradient(tail.x,tail.y,sh.x,sh.y);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.7,'rgba(200,220,255,.3)');g.addColorStop(1,'rgba(255,255,255,.95)');sfCtx.beginPath();sfCtx.strokeStyle=g;sfCtx.lineWidth=sh.width;sfCtx.lineCap='round';sfCtx.moveTo(tail.x,tail.y);sh.trail.forEach(p=>sfCtx.lineTo(p.x,p.y));sfCtx.lineTo(sh.x,sh.y);sfCtx.stroke();sfCtx.beginPath();sfCtx.arc(sh.x,sh.y,sh.width*1.4,0,Math.PI*2);sfCtx.fillStyle='rgba(255,255,255,.95)';sfCtx.fill();});cursorTrail.forEach(p=>{sfCtx.beginPath();sfCtx.arc(p.x,p.y,p.size,0,Math.PI*2);sfCtx.fillStyle=p.color.replace(')',`,${p.alpha})`).replace('rgb','rgba');sfCtx.fill();});}
+function sfLoop(){sfUpdate();sfDraw();requestAnimationFrame(sfLoop);}
+resize();initStars();sfLoop();
+window.addEventListener('resize',()=>{resize();initStars();});
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;if(Math.random()>.55)return;cursorTrail.push({x:e.clientX,y:e.clientY,vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.2-.4,size:Math.random()*1.8+0.4,alpha:.7,decay:Math.random()*.04+.02,color:Math.random()>.5?'rgb(126,179,255)':'rgb(192,132,252)'});if(cursorTrail.length>80)cursorTrail.shift();});
+</script>
+</body>
+</html>

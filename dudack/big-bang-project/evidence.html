@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Evidence Log · Cosmic Detective</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #020409; --surface: #070b18; --border: #111829; --text: #dde3f5; --muted: #55647f; --radius: 14px; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.7; overflow-x: hidden; }
+
+    #scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(to right,#5b8dee,#c084fc,#34d399,#fb923c); z-index: 9999; width: 0%; transition: width .1s; }
+    #starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .nebula { position: fixed; border-radius: 50%; filter: blur(120px); pointer-events: none; z-index: 0; }
+    .nb1 { width:700px;height:700px;top:-200px;left:-200px; background:radial-gradient(circle,#0a1535 0%,transparent 70%); opacity:.5; animation: nd 28s ease-in-out infinite alternate; }
+    .nb2 { width:500px;height:500px;top:40%;right:-150px; background:radial-gradient(circle,#051430 0%,transparent 70%); opacity:.4; animation: nd 22s ease-in-out infinite alternate-reverse; }
+    .nb3 { width:800px;height:800px;bottom:-300px;left:15%; background:radial-gradient(circle,#08102a 0%,transparent 70%); opacity:.4; animation: nd 35s ease-in-out infinite alternate; }
+    @keyframes nd { from{transform:translate(0,0) scale(1)} to{transform:translate(50px,30px) scale(1.12)} }
+
+    /* NAV */
+    .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; transition: background .3s, border-color .3s; border-bottom: 1px solid transparent; }
+    .top-nav.scrolled { background: rgba(2,4,9,.92); backdrop-filter: blur(16px); border-color: #111829; }
+    .nav-brand { display: flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; transition: color .2s; }
+    .nav-brand:hover { color: var(--text); }
+    .nav-brand i { color: #5b8dee; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link { padding: 6px 14px; border-radius: 100px; color: var(--muted); text-decoration: none; font-size: .78rem; transition: all .2s; border: 1px solid transparent; }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav-link.active { color: #7eb3ff; background: rgba(91,141,238,.1); border-color: rgba(91,141,238,.3); }
+
+    .wrap { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 32px; }
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease,transform .7s ease; }
+    .reveal.in { opacity:1; transform:none; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
+    @keyframes pulseGlow { 0%,100%{box-shadow:0 0 0 0 rgba(91,141,238,0)} 50%{box-shadow:0 0 24px 6px rgba(91,141,238,.18)} }
+
+    /* PAGE HEADER */
+    .page-header { padding: 140px 32px 60px; text-align: center; position: relative; z-index: 1; }
+    .page-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: .7rem; letter-spacing: .22em; text-transform: uppercase; color: #5b8dee; margin-bottom: 16px; animation: fadeUp .8s ease both; }
+    .page-header h1 { font-size: clamp(2.2rem,6vw,3.8rem); font-weight: 900; letter-spacing: -.04em; line-height: 1.08; margin-bottom: 18px; animation: fadeUp .9s .1s ease both; }
+    .page-grad { background: linear-gradient(135deg,#7eb3ff 0%,#93c5fd 60%,#c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-header p { max-width: 580px; margin: 0 auto 40px; color: var(--muted); font-size: 1rem; line-height: 1.75; animation: fadeUp .9s .2s ease both; }
+
+    /* QUICK NAV */
+    .quick-nav { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; animation: fadeUp .9s .3s ease both; margin-bottom: 0; }
+    .quick-nav a { display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border: 1px solid var(--border); border-radius: 100px; color: var(--muted); text-decoration: none; font-size: .78rem; background: rgba(255,255,255,.02); transition: all .2s; }
+    .quick-nav a i { font-size: .72rem; }
+    .quick-nav a:hover { border-color: var(--qc, #5b8dee); color: var(--qc, #5b8dee); background: rgba(255,255,255,.04); }
+
+    /* EVIDENCE SECTIONS */
+    .ev-section { padding: 90px 0; position: relative; z-index: 1; }
+    .ev-section + .ev-section { border-top: 1px solid #0d1220; }
+    .ev-section::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background: linear-gradient(to right, transparent 0%, var(--cc,#5b8dee) 30%, var(--cc,#5b8dee) 70%, transparent 100%); opacity: .35; }
+    .ev-section:first-of-type::before { display: none; }
+
+    .ev-body { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: center; }
+    .ev-body.flip { }
+
+    /* TEXT SIDE */
+    .ev-text { position: relative; }
+    .ev-section-num {
+      font-size: 7rem; font-weight: 900; line-height: 1;
+      color: var(--cc, #5b8dee); opacity: .06;
+      position: absolute; top: -28px; left: -12px;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none; user-select: none;
+      letter-spacing: -.05em;
+    }
+    .ev-label { display: inline-flex; align-items: center; gap: 8px; font-size: .68rem; letter-spacing: .2em; text-transform: uppercase; color: var(--cc, #5b8dee); margin-bottom: 18px; font-weight: 600; }
+    .ev-icon-wrap { width: 56px; height: 56px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--cc, #5b8dee); background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); margin-bottom: 22px; transition: transform .3s; }
+    .ev-section:hover .ev-icon-wrap { transform: scale(1.08) rotate(5deg); }
+    .ev-text h2 { font-size: clamp(1.65rem,2.8vw,2.15rem); font-weight: 800; letter-spacing: -.03em; margin-bottom: 18px; line-height: 1.18; }
+    .ev-text p { font-size: .95rem; color: var(--muted); line-height: 1.85; }
+    .ev-text p + p { margin-top: 14px; }
+    .ev-text strong { color: var(--cc, #5b8dee); font-weight: 600; }
+    .formula { display: inline-block; background: rgba(251,146,60,.08); border: 1px solid rgba(251,146,60,.25); border-radius: 8px; padding: 6px 18px; font-family: 'Courier New', monospace; font-size: 1.35rem; color: #fb923c; margin: 12px 0 18px; animation: pulseGlowOrange 3s ease infinite; }
+    @keyframes pulseGlowOrange { 0%,100%{box-shadow:0 0 0 0 rgba(251,146,60,0)} 50%{box-shadow:0 0 20px 4px rgba(251,146,60,.15)} }
+
+    /* DEMO PANEL */
+    .ev-demo {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ev-demo::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(to right, var(--cc,#5b8dee), transparent 70%); }
+    .ev-demo::after { content:''; position:absolute; inset:0; background: radial-gradient(circle at 100% 0%, var(--cc,#5b8dee) 0%, transparent 55%); opacity:.04; pointer-events:none; }
+    .demo-label { font-size: .65rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
+    .demo-label i { color: var(--cc, #5b8dee); }
+
+    /* REDSHIFT DEMO */
+    #redshift-canvas { width:100%; height:120px; display:block; border-radius:8px; background:rgba(0,0,0,.35); }
+    .redshift-slider { width:100%; margin:14px 0 6px; accent-color:#5b8dee; cursor:pointer; height:4px; }
+    .redshift-labels { display:flex; justify-content:space-between; font-size:.68rem; letter-spacing:.05em; margin-top:4px; }
+
+    /* CMB DEMO */
+    #cmb-canvas { width:100%; height:160px; display:block; border-radius:8px; cursor:pointer; }
+    .cmb-hint { font-size:.7rem; color:var(--muted); text-align:center; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:5px; }
+
+    /* ELEMENT RATIO */
+    .ratio-group { margin-bottom: 24px; }
+    .ratio-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .ratio-label { width:24px; font-weight:800; font-size:.95rem; flex-shrink:0; }
+    .ratio-track { flex:1; height:14px; background:rgba(255,255,255,.06); border-radius:100px; overflow:hidden; }
+    .ratio-fill { height:100%; border-radius:100px; transition:width 1.8s cubic-bezier(.4,0,.2,1); width:0%; }
+    .ratio-fill.h { background:linear-gradient(to right,#3b82f6,#93c5fd); }
+    .ratio-fill.he { background:linear-gradient(to right,#a855f7,#c084fc); }
+    .ratio-pct { width:38px; text-align:right; font-size:.82rem; color:var(--muted); flex-shrink:0; font-weight:600; }
+
+    /* DEMO BUTTONS */
+    .demo-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:13px 20px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,.03); color:var(--muted); font-size:.85rem; font-weight:500; cursor:pointer; transition:all .25s; margin-top:4px; }
+    .demo-btn:hover { border-color:var(--cc,#5b8dee); color:var(--cc,#5b8dee); background:rgba(255,255,255,.05); transform:translateY(-1px); }
+    .demo-btn i { font-size:.8rem; }
+
+    /* BIG TRIGGER BUTTON */
+    .big-trigger { display:flex; flex-direction:column; align-items:center; gap:20px; text-align:center; padding:20px 0; }
+    .big-trigger-btn { display:inline-flex; align-items:center; gap:10px; padding:16px 32px; border-radius:12px; background:linear-gradient(135deg,rgba(251,146,60,.12),rgba(251,146,60,.06)); border:1px solid rgba(251,146,60,.3); color:#fb923c; font-size:.95rem; font-weight:700; letter-spacing:.04em; cursor:pointer; transition:all .3s; }
+    .big-trigger-btn:hover { background:linear-gradient(135deg,rgba(251,146,60,.22),rgba(251,146,60,.12)); border-color:#fb923c; transform:translateY(-2px); box-shadow:0 8px 32px rgba(251,146,60,.2); }
+    .big-trigger-btn i { font-size:1.1rem; }
+    .big-trigger-sub { font-size:.75rem; color:var(--muted); line-height:1.6; max-width:240px; }
+
+    /* EXPLOSION OVERLAY */
+    #explosion-overlay { position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0);transition:background .3s; }
+    #explosion-overlay.active { display:flex;background:rgba(0,0,0,.92); }
+    #explosion-canvas { position:absolute;inset:0;width:100%;height:100%; }
+    .explosion-close-btn { position:absolute;top:22px;right:22px;z-index:10;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:100px;color:rgba(255,255,255,.55);font-size:.78rem;padding:9px 22px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;transition:all .2s;display:none;font-family:inherit; }
+    .explosion-close-btn.visible { display:block; }
+    .explosion-close-btn:hover { background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.38); }
+
+    footer { border-top:1px solid var(--border);padding:40px 32px;text-align:center;color:var(--muted);font-size:.8rem;position:relative;z-index:1;margin-top:40px; }
+    footer i { color:#5b8dee;margin:0 4px; }
+    footer a { color:var(--muted);text-decoration:none;transition:color .2s; }
+    footer a:hover { color:var(--text); }
+
+    @media(max-width:820px){
+      .ev-body { grid-template-columns:1fr; gap:40px; }
+      .ev-section-num { font-size:5rem; top:-20px; left:-8px; }
+      .wrap { padding:0 20px; }
+    }
+    @media(max-width:600px){
+      .top-nav{padding:12px 18px;}
+      .nav-links{gap:2px;}
+      .nav-link{padding:5px 10px;font-size:.72rem;}
+      .ev-section{padding:60px 0;}
+      .ev-demo{padding:24px;}
+    }
+  </style>
+</head>
+<body>
+
+<div id="scroll-progress"></div>
+<canvas id="starfield"></canvas>
+<div class="nb1 nebula"></div><div class="nb2 nebula"></div><div class="nb3 nebula"></div>
+
+<!-- EXPLOSION OVERLAY -->
+<div id="explosion-overlay">
+  <canvas id="explosion-canvas"></canvas>
+  <button class="explosion-close-btn" id="explosion-close-btn" onclick="closeExplosion()"><i class="fas fa-xmark"></i> Close</button>
+</div>
+
+<nav class="top-nav" id="top-nav">
+  <a href="big-bang.html" class="nav-brand"><i class="fas fa-meteor"></i> Cosmic Detective</a>
+  <div class="nav-links">
+    <a href="evidence.html" class="nav-link active">Evidence</a>
+    <a href="timeline.html" class="nav-link">Timeline</a>
+    <a href="narrative.html" class="nav-link">Narrative</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<header class="page-header">
+  <div class="page-eyebrow"><i class="fas fa-flask-vial"></i> Part I</div>
+  <h1><span class="page-grad">The Evidence Log</span></h1>
+  <p>These are basically the four main things that prove the Big Bang actually happened. If you understand these then the rest of it makes a lot more sense.</p>
+  <nav class="quick-nav">
+    <a href="#redshift" style="--qc:#5b8dee"><i class="fas fa-arrows-left-right"></i> Redshift</a>
+    <a href="#cmb" style="--qc:#c084fc"><i class="fas fa-satellite-dish"></i> CMB</a>
+    <a href="#elements" style="--qc:#34d399"><i class="fas fa-atom"></i> Element Abundance</a>
+    <a href="#emc2" style="--qc:#fb923c"><i class="fas fa-bolt-lightning"></i> E = mc²</a>
+  </nav>
+</header>
+
+<!-- ══ 01 REDSHIFT ══ -->
+<section class="ev-section reveal" style="--cc:#5b8dee" id="redshift">
+  <div class="wrap">
+    <div class="ev-body">
+
+      <div class="ev-text">
+        <div class="ev-section-num">01</div>
+        <div class="ev-label"><i class="fas fa-circle-dot"></i> Evidence One</div>
+        <div class="ev-icon-wrap"><i class="fas fa-arrows-left-right"></i></div>
+        <h2>Redshift &amp; Hubble's Law</h2>
+        <p>So basically imagine you're standing on the sidewalk and an ambulance drives past you. The siren sounds higher when its coming towards you and lower when its driving away. Thats called the Doppler effect and it actually works with light too not just sound.</p>
+        <p>When a galaxy is moving away from us its light gets stretched out and shifts toward red. And the farther away a galaxy is the faster its moving. This guy Edwin Hubble figured that out in 1929 and basically realized the whole universe is expanding. If you run it backwards everything traces back to one single point which is kind of crazy.</p>
+      </div>
+
+      <div class="ev-demo">
+        <div class="demo-label"><i class="fas fa-wave-square"></i> Live Doppler Demo</div>
+        <canvas id="redshift-canvas"></canvas>
+        <input type="range" id="redshift-slider" class="redshift-slider" min="0" max="100" value="50" oninput="updateRedshift(this.value)" />
+        <div class="redshift-labels">
+          <span style="color:#60a5fa">← Blueshift (approaching)</span>
+          <span style="color:#f87171">Redshift (receding) →</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ 02 CMB ══ -->
+<section class="ev-section reveal" style="--cc:#c084fc" id="cmb">
+  <div class="wrap">
+    <div class="ev-body">
+
+      <div class="ev-demo">
+        <div class="demo-label"><i class="fas fa-satellite-dish"></i> Ancient Sky Map · Click to Scan</div>
+        <canvas id="cmb-canvas"></canvas>
+        <p class="cmb-hint"><i class="fas fa-hand-pointer"></i> Click the map to run a scan of the ancient sky</p>
+      </div>
+
+      <div class="ev-text">
+        <div class="ev-section-num">02</div>
+        <div class="ev-label"><i class="fas fa-circle-dot"></i> Evidence Two</div>
+        <div class="ev-icon-wrap" style="color:#c084fc"><i class="fas fa-satellite-dish"></i></div>
+        <h2>Cosmic Microwave Background</h2>
+        <p>So in 1965 these two scientists named Penzias and Wilson kept hearing this really annoying hissing noise in their antenna and couldn't figure out where it was coming from. They tried cleaning it and everything. There were actually pigeons living inside the antenna so they got rid of those too. But it just kept hissing no matter what they did.</p>
+        <p>Turns out the hiss was coming from literally every direction in the sky all at once. It was the oldest light in the entire universe which is pretty insane. Its basically the leftover glow from the Big Bang that has been cooling down for 13.8 billion years and now its only like 2.725 degrees above absolute zero. They ended up winning the Nobel Prize for finding it.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ 03 ELEMENT ABUNDANCE ══ -->
+<section class="ev-section reveal" style="--cc:#34d399" id="elements">
+  <div class="wrap">
+    <div class="ev-body">
+
+      <div class="ev-text">
+        <div class="ev-section-num">03</div>
+        <div class="ev-label"><i class="fas fa-circle-dot"></i> Evidence Three</div>
+        <div class="ev-icon-wrap" style="color:#34d399"><i class="fas fa-atom"></i></div>
+        <h2>Element Abundance</h2>
+        <p>So the Big Bang theory made this really specific prediction way before anyone could even test it. It said the early universe should have made around <strong>75% hydrogen and 25% helium</strong> and basically nothing else.</p>
+        <p>And then when scientists actually went and measured the oldest gas clouds in space, like clouds that havent been changed by any stars yet, they found exactly that ratio every single time. No other theory has ever predicted something that specific and then been right about it. I think thats what makes this one so convincing.</p>
+      </div>
+
+      <div class="ev-demo">
+        <div class="demo-label"><i class="fas fa-chart-bar"></i> Primordial Nucleosynthesis Simulator</div>
+        <div class="ratio-group">
+          <div class="ratio-row">
+            <span class="ratio-label" style="color:#93c5fd">H</span>
+            <div class="ratio-track"><div class="ratio-fill h" id="h-bar"></div></div>
+            <span class="ratio-pct" id="h-pct">0%</span>
+          </div>
+          <div class="ratio-row">
+            <span class="ratio-label" style="color:#c084fc">He</span>
+            <div class="ratio-track"><div class="ratio-fill he" id="he-bar"></div></div>
+            <span class="ratio-pct" id="he-pct">0%</span>
+          </div>
+        </div>
+        <button class="demo-btn" id="fuse-btn" onclick="runNucleosynthesis()" style="--cc:#34d399">
+          <i class="fas fa-atom"></i> Run Nucleosynthesis
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ 04 E=MC² ══ -->
+<section class="ev-section reveal" style="--cc:#fb923c" id="emc2">
+  <div class="wrap">
+    <div class="ev-body">
+
+      <div class="ev-demo">
+        <div class="demo-label"><i class="fas fa-explosion"></i> Matter-Antimatter Annihilation</div>
+        <div class="big-trigger">
+          <button class="big-trigger-btn" onclick="triggerExplosion()">
+            <i class="fas fa-explosion"></i> Convert Energy to Matter
+          </button>
+          <p class="big-trigger-sub">Watch matter and antimatter pairs annihilate, and see the one survivor that became everything.</p>
+        </div>
+      </div>
+
+      <div class="ev-text">
+        <div class="ev-section-num">04</div>
+        <div class="ev-label"><i class="fas fa-circle-dot"></i> Evidence Four</div>
+        <div class="ev-icon-wrap" style="color:#fb923c"><i class="fas fa-bolt-lightning"></i></div>
+        <div class="formula">E = mc²</div>
+        <h2>E = mc²</h2>
+        <p>Albert Einstein came up with this equation in 1905 when he was working on special relativity. E stands for energy, m stands for mass, and c is the speed of light. When you square the speed of light you get a really big number so even a tiny amount of mass has like a huge amount of energy inside it. And it goes the other way too where enough energy can actually turn into mass.</p>
+        <p>In the very beginning of the universe it was so hot that energy kept turning into particles but they always came out in pairs, one matter and one antimatter, and they would just destroy each other right away. This happened over and over basically nonstop.</p>
+        <p>But there was this tiny imbalance where there was just slightly more matter than antimatter. Like for every billion antimatter particles there was one extra matter particle. That one extra is literally every atom that exists. Every star, every planet, everything. Pretty crazy when you actually think about it.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <i class="fas fa-star"></i>
+  <a href="big-bang.html">Cosmic Detective</a> ·
+  <a href="timeline.html">Cosmic Storyboard</a> ·
+  <a href="narrative.html">The Narrative</a>
+  <i class="fas fa-star"></i>
+</footer>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const doc=document.documentElement;
+  document.getElementById('scroll-progress').style.width=((doc.scrollTop/(doc.scrollHeight-doc.clientHeight))*100)+'%';
+  document.getElementById('top-nav').classList.toggle('scrolled',window.scrollY>30);
+});
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');ro.unobserve(e.target);}});},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+/* STARFIELD */
+const sfCanvas=document.getElementById('starfield'),sfCtx=sfCanvas.getContext('2d');
+let W,H,stars=[],shooters=[],cursorTrail=[],tick=0,mouse={x:-999,y:-999};
+function resize(){W=sfCanvas.width=window.innerWidth;H=sfCanvas.height=window.innerHeight;}
+function mkStar(){const depth=Math.random()*3+0.5,speed=depth*(Math.random()*0.12+0.03),angle=Math.random()*Math.PI*2;return{x:Math.random()*W,y:Math.random()*H,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r:Math.min(depth*0.45,1.8),baseAlpha:Math.random()*0.55+0.25,twinkle:Math.random()*0.03+0.005,phase:Math.random()*Math.PI*2,depth,hue:Math.random()>.85?38:(Math.random()>.7?210:0)};}
+function initStars(){stars=Array.from({length:300},mkStar);}
+function spawnShooter(){const top=Math.random()>.4,ang=(Math.random()*35+15)*Math.PI/180,spd=Math.random()*10+7;shooters.push({x:top?Math.random()*W:-10,y:top?-10:Math.random()*H*0.6,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,trail:[],maxTrail:Math.floor(Math.random()*20+14),width:Math.random()*1.2+0.6,alive:true});}
+let nextShooter=240;
+function sfUpdate(){tick++;const mx=(mouse.x/W-0.5)*14,my=(mouse.y/H-0.5)*14;stars.forEach(s=>{s.x+=s.vx;s.y+=s.vy;const px=s.x+mx/(s.depth*1.5),py=s.y+my/(s.depth*1.5);s._px=((px%W)+W)%W;s._py=((py%H)+H)%H;s.alpha=s.baseAlpha*(0.55+0.45*Math.sin(tick*s.twinkle+s.phase));});if(tick>=nextShooter){spawnShooter();nextShooter=tick+Math.floor(Math.random()*320+180);}shooters.forEach(sh=>{sh.trail.push({x:sh.x,y:sh.y});if(sh.trail.length>sh.maxTrail)sh.trail.shift();sh.x+=sh.vx;sh.y+=sh.vy;if(sh.x>W+80||sh.y>H+80)sh.alive=false;});shooters=shooters.filter(s=>s.alive);cursorTrail.forEach(p=>{p.alpha-=p.decay;p.x+=p.vx;p.y+=p.vy;});cursorTrail=cursorTrail.filter(p=>p.alpha>0);}
+function sfDraw(){sfCtx.clearRect(0,0,W,H);stars.forEach(s=>{sfCtx.beginPath();sfCtx.arc(s._px??s.x,s._py??s.y,s.r,0,Math.PI*2);const col=s.hue===0?`rgba(220,230,255,${s.alpha})`:s.hue===38?`rgba(255,240,200,${s.alpha})`:`rgba(170,200,255,${s.alpha})`;sfCtx.fillStyle=col;sfCtx.fill();if(s.r>1.2){sfCtx.beginPath();sfCtx.arc(s._px??s.x,s._py??s.y,s.r*2.5,0,Math.PI*2);sfCtx.fillStyle=col.replace(s.alpha.toFixed(2),(s.alpha*0.18).toFixed(2));sfCtx.fill();}});shooters.forEach(sh=>{if(sh.trail.length<2)return;const tail=sh.trail[0];const g=sfCtx.createLinearGradient(tail.x,tail.y,sh.x,sh.y);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.7,'rgba(200,220,255,.3)');g.addColorStop(1,'rgba(255,255,255,.95)');sfCtx.beginPath();sfCtx.strokeStyle=g;sfCtx.lineWidth=sh.width;sfCtx.lineCap='round';sfCtx.moveTo(tail.x,tail.y);sh.trail.forEach(p=>sfCtx.lineTo(p.x,p.y));sfCtx.lineTo(sh.x,sh.y);sfCtx.stroke();sfCtx.beginPath();sfCtx.arc(sh.x,sh.y,sh.width*1.4,0,Math.PI*2);sfCtx.fillStyle='rgba(255,255,255,.95)';sfCtx.fill();});cursorTrail.forEach(p=>{sfCtx.beginPath();sfCtx.arc(p.x,p.y,p.size,0,Math.PI*2);sfCtx.fillStyle=p.color.replace(')',`,${p.alpha})`).replace('rgb','rgba');sfCtx.fill();});}
+function sfLoop(){sfUpdate();sfDraw();requestAnimationFrame(sfLoop);}
+resize();initStars();sfLoop();
+window.addEventListener('resize',()=>{resize();initStars();});
+window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;if(Math.random()>.55)return;cursorTrail.push({x:e.clientX,y:e.clientY,vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.2-.4,size:Math.random()*1.8+0.4,alpha:.7,decay:Math.random()*.04+.02,color:Math.random()>.5?'rgb(126,179,255)':'rgb(192,132,252)'});if(cursorTrail.length>80)cursorTrail.shift();});
+
+/* REDSHIFT */
+const rsCanvas=document.getElementById('redshift-canvas');
+rsCanvas.width=rsCanvas.offsetWidth||480;rsCanvas.height=120;
+const rsCtx=rsCanvas.getContext('2d');
+function updateRedshift(val){
+  val=parseFloat(val);const w=rsCanvas.width,h=rsCanvas.height;rsCtx.clearRect(0,0,w,h);
+  const t=(val-50)/50;
+  const r=Math.round(t>0?80+t*175:80);
+  const g=Math.round(110-Math.abs(t)*70);
+  const b=Math.round(t<0?80+Math.abs(t)*175:80-t*60);
+  const freq=0.012+t*0.007;const amp=32;
+  const grad=rsCtx.createLinearGradient(0,0,w,0);
+  grad.addColorStop(0,`rgba(${r},${g},${b},0)`);
+  grad.addColorStop(.15,`rgba(${r},${g},${b},.8)`);
+  grad.addColorStop(.85,`rgba(${r},${g},${b},.8)`);
+  grad.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  rsCtx.beginPath();rsCtx.moveTo(0,h/2);
+  for(let x=0;x<w;x++){rsCtx.lineTo(x,h/2+Math.sin(x*freq*Math.PI*2)*amp);}
+  rsCtx.strokeStyle=grad;rsCtx.lineWidth=3;rsCtx.stroke();
+  rsCtx.shadowBlur=10;rsCtx.shadowColor=`rgb(${r},${g},${b})`;
+  rsCtx.beginPath();rsCtx.moveTo(0,h/2);
+  for(let x=0;x<w;x++){rsCtx.lineTo(x,h/2+Math.sin(x*freq*Math.PI*2)*amp);}
+  rsCtx.strokeStyle=`rgba(${r},${g},${b},.3)`;rsCtx.lineWidth=8;rsCtx.stroke();
+  rsCtx.shadowBlur=0;
+  rsCtx.font='bold 11px monospace';rsCtx.fillStyle=`rgba(${r},${g},${b},.9)`;rsCtx.textAlign='center';
+  rsCtx.fillText(`~${Math.round(380+val*4)} nm`,w/2,18);
+}
+window.addEventListener('resize',()=>{rsCanvas.width=rsCanvas.offsetWidth||480;updateRedshift(document.getElementById('redshift-slider').value);});
+setTimeout(()=>updateRedshift(50),100);
+
+/* CMB */
+const cmbCanvas=document.getElementById('cmb-canvas'),cmbCtx=cmbCanvas.getContext('2d');
+let cmbScanning=false,cmbData=null;
+function initCMB(){cmbCanvas.width=cmbCanvas.offsetWidth||420;cmbCanvas.height=160;cmbData=[];const cols=Math.floor(cmbCanvas.width/4),rows=Math.floor(cmbCanvas.height/4);for(let y=0;y<rows;y++){cmbData[y]=[];for(let x=0;x<cols;x++){cmbData[y][x]=Math.random();}}drawCMB(cmbData,1);}
+function drawCMB(data,reveal){const w=cmbCanvas.width,h=cmbCanvas.height;cmbCtx.clearRect(0,0,w,h);const cellW=w/data[0].length,cellH=h/data.length;const revealX=Math.floor(data[0].length*Math.min(reveal,1));data.forEach((row,y)=>{row.forEach((v,x)=>{if(x>revealX)return;const r=Math.round(v>0.6?200+v*55:v*100);const g2=Math.round(v>0.4&&v<0.7?180:v*60);const b=Math.round(v<0.4?200+v*55:v*30);cmbCtx.fillStyle=`rgb(${r},${g2},${b})`;cmbCtx.fillRect(x*cellW,y*cellH,cellW,cellH);});});if(reveal<1){const scanX=Math.floor(data[0].length*reveal)*cellW;cmbCtx.fillStyle='rgba(255,255,255,.7)';cmbCtx.fillRect(scanX,0,2,h);}}
+function runCMBScan(){if(cmbScanning)return;cmbScanning=true;initCMB();let prog=0;const interval=setInterval(()=>{prog+=0.02;drawCMB(cmbData,prog);if(prog>=1){clearInterval(interval);cmbScanning=false;animateCMB();}},16);}
+function animateCMB(){let t=0;function shimmer(){drawCMB(cmbData,1);cmbCtx.fillStyle=`rgba(200,220,255,${0.04+0.03*Math.sin(t*0.05)})`;cmbCtx.fillRect(0,0,cmbCanvas.width,cmbCanvas.height);t++;if(t<200)requestAnimationFrame(shimmer);}shimmer();}
+cmbCanvas.addEventListener('click',runCMBScan);
+window.addEventListener('resize',initCMB);
+setTimeout(initCMB,200);
+
+/* NUCLEOSYNTHESIS */
+let fusionDone=false;
+function runNucleosynthesis(){if(fusionDone)return;fusionDone=true;const btn=document.getElementById('fuse-btn');btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Fusing nuclei...';btn.style.pointerEvents='none';const hBar=document.getElementById('h-bar'),heBar=document.getElementById('he-bar'),hPct=document.getElementById('h-pct'),hePct=document.getElementById('he-pct');let start;function step(ts){if(!start)start=ts;const p=Math.min((ts-start)/2200,1),e=1-Math.pow(1-p,3);hBar.style.width=(e*75)+'%';heBar.style.width=(e*25)+'%';hPct.textContent=Math.round(e*75)+'%';hePct.textContent=Math.round(e*25)+'%';if(p<1){requestAnimationFrame(step);}else{btn.innerHTML='<i class="fas fa-check"></i> Done — 75% H, 25% He';btn.style.color='#34d399';btn.style.borderColor='rgba(52,211,153,.4)';}}requestAnimationFrame(step);}
+
+/* E=MC² EXPLOSION */
+const exOverlay=document.getElementById('explosion-overlay'),exCanvas=document.getElementById('explosion-canvas'),exCtx=exCanvas.getContext('2d');
+const exCloseBtn=document.getElementById('explosion-close-btn');
+let exParticles=[],exFlashes=[],exAnimId=null,exTick=0,exSurvivor=null,exTextAlpha=0,exAllGoneAt=0;
+
+class ExParticle{
+  constructor(cx,cy,angle,speed,type){
+    this.x=cx;this.y=cy;this.vx=Math.cos(angle)*speed;this.vy=Math.sin(angle)*speed;
+    this.type=type;this.size=type==='matter'?7:6;this.alpha=1;this.trail=[];this.annihilated=false;
+    this.color=type==='matter'?'#93c5fd':'#fca5a5';this.glow=type==='matter'?'#3b82f6':'#ef4444';
+  }
+  update(){
+    if(this.annihilated)return;
+    this.trail.push({x:this.x,y:this.y});
+    if(this.trail.length>10)this.trail.shift();
+    this.vx*=.975;this.vy*=.975;this.x+=this.vx;this.y+=this.vy;
+  }
+  draw(ctx){
+    if(this.annihilated)return;
+    this.trail.forEach((p,i)=>{
+      const a=(i/this.trail.length)*0.25*this.alpha;
+      ctx.beginPath();ctx.arc(p.x,p.y,this.size*(i/this.trail.length)*.8,0,Math.PI*2);
+      ctx.globalAlpha=a;ctx.fillStyle=this.color;ctx.fill();ctx.globalAlpha=1;
+    });
+    ctx.shadowBlur=18;ctx.shadowColor=this.glow;
+    ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+    ctx.fillStyle=this.color;ctx.globalAlpha=this.alpha;ctx.fill();
+    ctx.shadowBlur=0;ctx.globalAlpha=1;
+    ctx.font='bold 9px monospace';ctx.fillStyle=`rgba(255,255,255,${this.alpha*.8})`;
+    ctx.textAlign='center';ctx.globalAlpha=this.alpha;
+    ctx.fillText(this.type==='matter'?'M':'AM',this.x,this.y-this.size-3);
+    ctx.globalAlpha=1;
+  }
+}
+
+function triggerExplosion(){
+  exCanvas.width=window.innerWidth;exCanvas.height=window.innerHeight;
+  exOverlay.classList.add('active');
+  exParticles=[];exFlashes=[];exTick=0;exSurvivor=null;exTextAlpha=0;exAllGoneAt=0;
+  exCloseBtn.classList.remove('visible');
+  if(exAnimId)cancelAnimationFrame(exAnimId);
+  const cx=exCanvas.width/2,cy=exCanvas.height/2;
+  for(let i=0;i<18;i++){
+    const ang=((Math.PI*2)/18)*i+Math.random()*.3;
+    const spd=Math.random()*5+3;
+    const m=new ExParticle(cx,cy,ang,spd,'matter');
+    const am=new ExParticle(cx,cy,ang+Math.PI,spd*(.9+Math.random()*.2),'antimatter');
+    m.partner=am;am.partner=m;
+    exParticles.push(m,am);
+  }
+  exSurvivor=new ExParticle(cx,cy,Math.random()*Math.PI*2,1.5,'matter');
+  exSurvivor.size=9;
+  runExplosion(cx,cy);
+}
+
+function runExplosion(cx,cy){
+  exTick++;
+  exCtx.clearRect(0,0,exCanvas.width,exCanvas.height);
+
+  // Initial flash
+  if(exTick<30){
+    const flAlpha=Math.max(0,(30-exTick)/30);
+    const grad=exCtx.createRadialGradient(cx,cy,0,cx,cy,120+exTick*3);
+    grad.addColorStop(0,`rgba(255,255,220,${flAlpha})`);
+    grad.addColorStop(.3,`rgba(255,150,50,${flAlpha*.6})`);
+    grad.addColorStop(1,'rgba(255,80,20,0)');
+    exCtx.fillStyle=grad;exCtx.fillRect(0,0,exCanvas.width,exCanvas.height);
+  }
+
+  const allGone=exParticles.every(p=>p.annihilated);
+
+  // Update particles
+  if(!allGone){
+    exParticles.forEach(p=>p.update());
+    exSurvivor.update();
+  } else {
+    // Lerp survivor to center
+    exSurvivor.x+=(cx-exSurvivor.x)*0.045;
+    exSurvivor.y+=(cy-exSurvivor.y)*0.045;
+    exSurvivor.size=Math.min(exSurvivor.size+0.07,16);
+  }
+
+  // Check annihilation
+  if(exTick>60&&!allGone){
+    exParticles.forEach(p=>{
+      if(p.annihilated||!p.partner||p.partner.annihilated)return;
+      const dx=p.x-p.partner.x,dy=p.y-p.partner.y;
+      if(Math.sqrt(dx*dx+dy*dy)<30||(exTick>140&&Math.random()<.04)){
+        const fx=(p.x+p.partner.x)/2,fy=(p.y+p.partner.y)/2;
+        exFlashes.push({x:fx,y:fy,r:0,maxR:60,alpha:1});
+        p.annihilated=true;p.partner.annihilated=true;
+      }
+    });
+  }
+
+  // Annihilation flashes
+  exFlashes.forEach(f=>{
+    f.r+=4;f.alpha=Math.max(0,1-f.r/f.maxR);
+    const g=exCtx.createRadialGradient(f.x,f.y,0,f.x,f.y,f.r);
+    g.addColorStop(0,`rgba(255,255,200,${f.alpha})`);
+    g.addColorStop(1,'rgba(255,200,50,0)');
+    exCtx.fillStyle=g;exCtx.fillRect(f.x-f.r,f.y-f.r,f.r*2,f.r*2);
+  });
+  exFlashes=exFlashes.filter(f=>f.alpha>0);
+
+  // Draw particles
+  exParticles.forEach(p=>p.draw(exCtx));
+
+  // Survivor glow & draw
+  if(allGone){
+    const dist=Math.hypot(exSurvivor.x-cx,exSurvivor.y-cy);
+    const glowR=60+Math.max(0,1-dist/180)*100;
+    const sg=exCtx.createRadialGradient(exSurvivor.x,exSurvivor.y,0,exSurvivor.x,exSurvivor.y,glowR);
+    sg.addColorStop(0,'rgba(147,197,253,.55)');
+    sg.addColorStop(.35,'rgba(59,130,246,.2)');
+    sg.addColorStop(1,'rgba(59,130,246,0)');
+    exCtx.fillStyle=sg;exCtx.fillRect(exSurvivor.x-glowR,exSurvivor.y-glowR,glowR*2,glowR*2);
+
+    // Pulse ring
+    const ring=(exTick%60)/60;
+    exCtx.beginPath();exCtx.arc(exSurvivor.x,exSurvivor.y,exSurvivor.size+ring*40,0,Math.PI*2);
+    exCtx.strokeStyle=`rgba(147,197,253,${0.4*(1-ring)})`;exCtx.lineWidth=2;exCtx.stroke();
+
+    // Text fades in once survivor is near center
+    if(dist<24){
+      exTextAlpha=Math.min(exTextAlpha+0.018,1);
+      if(exTextAlpha>0.01){
+        const ty=exSurvivor.y+exSurvivor.size+52;
+        exCtx.save();
+        exCtx.globalAlpha=exTextAlpha;
+        exCtx.textAlign='center';
+        exCtx.font='bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        exCtx.fillStyle='#ffffff';
+        exCtx.shadowBlur=20;exCtx.shadowColor='rgba(147,197,253,.6)';
+        exCtx.fillText('1 in a billion survived.',cx,ty);
+        exCtx.shadowBlur=0;
+        exCtx.font='16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        exCtx.fillStyle='#a5b4fc';
+        exCtx.fillText('That one particle is every atom that has ever existed.',cx,ty+36);
+        exCtx.restore();
+        if(exTextAlpha>0.6) exCloseBtn.classList.add('visible');
+      }
+    }
+  } else {
+    exSurvivor.draw(exCtx);
+  }
+
+  // Legend
+  if(exTick>20&&!allGone){
+    const a=Math.min((exTick-20)/30,1);
+    exCtx.font='12px monospace';exCtx.globalAlpha=a;
+    exCtx.fillStyle='#93c5fd';exCtx.textAlign='left';exCtx.fillText('M = Matter',24,34);
+    exCtx.fillStyle='#fca5a5';exCtx.fillText('AM = Antimatter',24,52);
+    exCtx.globalAlpha=1;
+  }
+
+  exAnimId=requestAnimationFrame(()=>runExplosion(cx,cy));
+}
+
+function closeExplosion(){
+  exOverlay.classList.remove('active');
+  exCloseBtn.classList.remove('visible');
+  if(exAnimId)cancelAnimationFrame(exAnimId);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExplosion();});
+</script>
+</body>
+</html>

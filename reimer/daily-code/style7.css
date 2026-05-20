@@ -1,0 +1,67 @@
+body{
+    margin: 0px;
+    background: #567890;
+    perspective: 1000px;
+}
+*{
+    box-sizing: border-box;
+}
+#cube{
+    font-size: 30pt;
+    margin: 20vh auto 0px auto;
+    width: 400px;
+    transform: rotateX(-25deg) rotateY(30deg);
+    transform-style: preserve-3d;
+    transition: .5s;
+}
+.side{
+    height: 150px;
+    width: 150px;
+    overflow: hidden;
+    border: 2px solid #000;
+    position: absolute;
+    transition: .5s;
+}
+#cube:hover #one{
+    transform: translateZ(75px);
+    transition: 5s;
+}
+#cube:hover #two{
+    transform: rotateX(90deg) translateZ(75px);
+    background-color: rgba(0,150,0,.5);
+    transition: 5s;
+}
+#cube:hover #three{
+    transform: rotateY(90deg) translateZ(75px);
+    background-color: rgba(150, 22, 0, 0.5);
+    transition: 5s;
+}
+#cube:hover #four{
+    transform: rotateY(-90deg) translateZ(75px);
+    background-color: rgba(125, 0, 150, 0.5);
+    transition: 5s;
+}
+#cube:hover #five{
+    transform: rotateX(-90deg) translateZ(75px);
+    background-color: rgba(241, 177, 0, 0.5);
+    transition: 5s;
+}
+#cube:hover #six{
+    transform: rotateY(180deg) translateZ(75px);
+    background-color: rgba(0, 77, 150, 0.5);
+    transition: 5s;
+}
+#cube:hover{
+    transform-origin: 75px 75px;
+    transform: rotateY(360deg) rotateX(180deg);
+    transition: 30s;
+}
+.side img{
+    width: 100%;
+    height: 100%;
+    opacity: .5s;
+}
+.side:hover img{
+    opacity: 1;
+    transition: .1s;
+}
